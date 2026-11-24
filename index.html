@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Türkiye Risk Panosu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* Düzen: üstte özet şeridi, altında tarihçe ve erken uyarı yan yana, en altta senaryo masası ve gösterge tablosu */
+:root{
+  --zemin:#f4f5f7; --kart:#ffffff; --murekkep:#16202e; --soluk:#5b6675; --cizgi:#dde1e7;
+  --vurgu:#1f4fbf;
+  --sakin:#2e8a57; --dikkat:#c58a10; --yuksek:#d0602a; --kriz:#b3261e;
+  --sakin-z:#e3f2e9; --dikkat-z:#fbf0d6; --yuksek-z:#fbe3d6; --kriz-z:#f8dcda;
+  --f-govde:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-sayi:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --zemin:#11161e; --kart:#19202b; --murekkep:#e6eaf0; --soluk:#9aa5b4; --cizgi:#2b3442;
+  --vurgu:#7ea2ff; --sakin:#5cc48a; --dikkat:#e8b33f; --yuksek:#f0875a; --kriz:#f06a61;
+  --sakin-z:#17301f; --dikkat-z:#33290f; --yuksek-z:#3a2216; --kriz-z:#3b1a18; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --zemin:#11161e; --kart:#19202b; --murekkep:#e6eaf0; --soluk:#9aa5b4; --cizgi:#2b3442;
+  --vurgu:#7ea2ff; --sakin:#5cc48a; --dikkat:#e8b33f; --yuksek:#f0875a; --kriz:#f06a61;
+  --sakin-z:#17301f; --dikkat-z:#33290f; --yuksek-z:#3a2216; --kriz-z:#3b1a18; color-scheme:dark;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--zemin);color:var(--murekkep);font:15px/1.5 var(--f-govde)}
+.sar{max-width:1180px;margin:0 auto;padding:24px 16px 48px;display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+h1{font-size:1.55rem;margin:0;text-wrap:balance} h2{font-size:1.1rem;margin:0 0 4px;text-wrap:balance}
+.alt{color:var(--soluk);font-size:.88rem}
+.kart{background:var(--kart);border:1px solid var(--cizgi);border-radius:10px;padding:18px}
+.ust{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between}
+.ozet{display:grid;grid-template-columns:1.4fr repeat(3,1fr) 1.6fr;gap:12px}
+.tile{background:var(--kart);border:1px solid var(--cizgi);border-radius:10px;padding:14px 16px;border-left:5px solid var(--cizgi)}
+.tile .ad{font-size:.82rem;color:var(--soluk)}
+.tile .sayi{font:600 2rem/1.1 var(--f-sayi);font-variant-numeric:tabular-nums}
+.tile.buyuk .sayi{font-size:2.8rem}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:.78rem;font-weight:600}
+.b-sakin{--b:var(--sakin);--bz:var(--sakin-z)} .b-dikkat{--b:var(--dikkat);--bz:var(--dikkat-z)}
+.b-yuksek{--b:var(--yuksek);--bz:var(--yuksek-z)} .b-olagan{--b:var(--murekkep);--bz:var(--cizgi)} .b-kriz{--b:var(--kriz);--bz:var(--kriz-z)}
+.tile[class*="b-"]{border-left-color:var(--b)} .pill[class*="b-"]{background:var(--bz);color:var(--b)}
+.iki{display:grid;grid-template-columns:1.25fr 1fr;gap:20px}
+svg{display:block;width:100%;height:auto} svg text{fill:var(--soluk);font:12px var(--f-govde)}
+.lejant{display:flex;flex-wrap:wrap;gap:14px;font-size:.82rem;color:var(--soluk);margin-top:6px}
+.lejant i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.senaryo{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start}
+.blok-grup{margin-bottom:16px} .blok-grup h3{font-size:.95rem;margin:0 0 6px;display:flex;justify-content:space-between}
+.satir{display:grid;grid-template-columns:minmax(150px,1.1fr) minmax(140px,2fr) 92px 46px;gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--cizgi)}
+.satir label{font-size:.86rem} .satir .birim{color:var(--soluk);font-size:.76rem}
+.satir output{font:600 .95rem var(--f-sayi);font-variant-numeric:tabular-nums;text-align:right}
+.satir .p{font:600 .85rem var(--f-sayi);text-align:center;border-radius:6px;padding:2px 0}
+.satir.degisti label{color:var(--vurgu);font-weight:600}
+.ray{position:relative} .ray .izler{position:absolute;left:8px;right:8px;top:-6px;height:6px;display:flex}
+.ray .izler span{flex:1}
+input[type=range]{width:100%;accent-color:var(--vurgu);cursor:pointer}
+input[type=range]:focus-visible{outline:2px solid var(--vurgu);outline-offset:3px}
+.sonuc{position:sticky;top:16px;display:grid;gap:12px}
+.sonuc .sayi{font:600 3.2rem/1 var(--f-sayi);font-variant-numeric:tabular-nums}
+.fark{font:600 1rem var(--f-sayi)} .artti{color:var(--kriz)} .azaldi{color:var(--sakin)}
+.btnlar{display:flex;flex-wrap:wrap;gap:8px}
+button{font:500 .85rem var(--f-govde);border:1px solid var(--cizgi);background:var(--kart);color:var(--murekkep);border-radius:7px;padding:7px 11px;cursor:pointer}
+button:hover{border-color:var(--vurgu);color:var(--vurgu)} button:focus-visible{outline:2px solid var(--vurgu);outline-offset:2px}
+button.ana{background:var(--vurgu);color:#fff;border-color:var(--vurgu)}
+.bloklar-mini{display:grid;gap:6px;font-size:.86rem}
+.bloklar-mini div{display:grid;grid-template-columns:1fr 50px 50px;gap:6px;font-variant-numeric:tabular-nums}
+table{width:100%;border-collapse:collapse;font-size:.86rem;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--cizgi);vertical-align:top}
+th{color:var(--soluk);font-weight:500;font-size:.8rem} td.s{text-align:right;white-space:nowrap}
+.tasindi{color:var(--soluk);font-size:.78rem}
+.tablo-sar{overflow-x:auto}
+select{font:inherit;padding:5px 8px;border-radius:7px;border:1px solid var(--cizgi);background:var(--kart);color:var(--murekkep)}
+.not{font-size:.8rem;color:var(--soluk)}
+.sar>*,.iki>*,.senaryo>*,.ozet>*,.satir>*{min-width:0}
+@media (max-width:980px){.ozet{grid-template-columns:repeat(2,1fr)}.ozet .tile.buyuk,.ozet .tile.uyari{grid-column:span 2}.senaryo{grid-template-columns:1fr}
+  .sonuc{position:sticky;top:auto;bottom:0;z-index:5;padding-bottom:8px}
+  .sonuc>.kart,#sen-not{display:none}
+  #sen-kutu{box-shadow:0 -4px 14px rgba(0,0,0,.18);display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;padding:10px 14px}
+  #sen-kutu .sayi{font-size:2.2rem}}
+@media (max-width:520px){.satir{grid-template-columns:1fr 80px 44px}.satir .ray{grid-column:1/-1;grid-row:2}}
+.gecmis td.h{text-align:right;white-space:nowrap;padding:6px 8px}
+.gecmis td.h span{display:inline-block;min-width:52px;padding:2px 6px;border-radius:5px;background:var(--bz,transparent);color:var(--murekkep)}
+.gecmis td.h.tas span{opacity:.6} .gecmis th.d{text-align:right;white-space:nowrap}
+.gecmis td.ad{min-width:190px} .gecmis tr.toplam td{font-weight:600;border-top:2px solid var(--cizgi)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* Sayfa başlığı */
+.sayfa-bas{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.sayfa-bas .bas-sol{display:grid;gap:4px}
+/* Erken uyarı sinyalleri */
+.sinyal-bas{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:14px}
+.sinyal-bas>div:first-child{flex:1 1 auto;min-width:0}
+@media (max-width:760px){.sinyal-bas{flex-direction:column;align-items:stretch}}
+.genel{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;background:var(--bz);border:1px solid var(--b)}
+.genel .etiket{font-size:.76rem;color:var(--soluk);text-transform:uppercase;letter-spacing:.04em}
+.genel{flex:0 0 auto} .genel .etiket,.genel .alt{white-space:nowrap}
+.genel .durum{font:600 1.25rem var(--f-sayi);color:var(--b)}
+.genel .noktalar{display:flex;gap:5px} .genel .noktalar i{width:12px;height:12px;border-radius:50%;display:inline-block}
+.sinyal-izgara{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.skart{background:var(--zemin);border:1px solid var(--cizgi);border-top:4px solid var(--b);border-radius:10px;padding:12px 14px 10px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.skart .ust-s{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.skart .ad{font-weight:600;font-size:.92rem;line-height:1.25;min-height:2.5em;display:flex;align-items:center}
+.skart .deger{font:600 1.65rem/1.1 var(--f-sayi);font-variant-numeric:tabular-nums;color:var(--murekkep)}
+.skart .deger small{font-size:.85rem;font-weight:500;color:var(--soluk);margin-left:3px}
+.skart .alt-s{font-size:.76rem;color:var(--soluk);font-variant-numeric:tabular-nums}
+.skart svg{width:100%;height:auto;display:block;margin-top:2px}
+.skart .eksen{display:flex;justify-content:space-between;font-size:.68rem;color:var(--soluk)}
+.skart .esikler{font-size:.74rem;color:var(--soluk);display:flex;gap:10px;flex-wrap:wrap}
+.skart .esikler b{font-weight:600}
+.skart .aciklama{font-size:.76rem;color:var(--soluk);line-height:1.35;border-top:1px solid var(--cizgi);padding-top:6px;margin-top:auto}
+.skart .yon{font-size:.76rem;color:var(--soluk);line-height:1.35}
+.skart .yon b{font-weight:600}
+.skart .uyari-not{font-size:.74rem;color:var(--dikkat)}
+.sinyal-not{margin-top:10px}
+/* Model açıklaması penceresi */
+button.bilgi{display:inline-flex;align-items:center;gap:6px;border-color:var(--vurgu);color:var(--vurgu)}
+button.bilgi:hover{background:var(--vurgu);color:#fff}
+dialog#model{width:min(960px,96vw);max-height:90vh;overflow:auto;padding:0;border:1px solid var(--cizgi);border-radius:12px;background:var(--kart);color:var(--murekkep)}
+dialog#model::backdrop{background:rgba(10,14,20,.55)}
+#model .mbas{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 22px;background:var(--kart);border-bottom:1px solid var(--cizgi)}
+#model .mbas h2{margin:0;font-size:1.2rem}
+#model .mgovde{padding:6px 22px 26px;overflow-wrap:anywhere}
+#model h3{font-size:1.02rem;margin:22px 0 6px}
+#model p,#model li{max-width:78ch} #model ul,#model ol{padding-left:20px;margin:6px 0}
+#model .formul{font:500 .95rem var(--f-sayi);background:var(--zemin);border:1px solid var(--cizgi);border-radius:8px;padding:10px 12px;margin:8px 0;overflow-x:auto}
+#model .kaydir{overflow-x:auto}
+#model table.mtab{font-size:.82rem;width:auto;min-width:1040px;overflow-wrap:normal;word-break:normal}
+#model table.mtab td:nth-child(1){white-space:nowrap;font-weight:600}
+#model table.mtab td:nth-child(2){min-width:170px} #model table.mtab td:nth-child(6){min-width:180px} #model table.mtab td:nth-child(7){min-width:300px}
+#model h3{scroll-margin-top:70px}
+#model table.mtab td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+#model tr.bl td{background:var(--zemin);font-weight:600}
+#model .icindekiler{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.86rem;margin:10px 0 0}
+#model .icindekiler a{color:var(--vurgu)}
+#model .uyari{border-left:4px solid var(--dikkat);background:var(--zemin);padding:8px 12px;border-radius:6px;margin:8px 0}
+</style>
+</head>
+<body>
+<div class="sar">
+  <header class="sayfa-bas">
+    <div class="bas-sol"><h1>Türkiye Risk Panosu</h1>
+      <div class="alt" id="altbaslik"></div>
+      <div class="alt">0 = risk yok · 100 = kriz &nbsp;|&nbsp; Sakin &lt;25 · Dikkat 25–50 · Yüksek 50–75 · Kriz 75+</div></div>
+    <button class="bilgi" id="model-ac" aria-haspopup="dialog"><span aria-hidden="true">ⓘ</span> Model nasıl çalışıyor?</button>
+  </header>
+
+  <section class="ozet" id="ozet" aria-label="Son durum"></section>
+
+  <section class="kart">
+    <h2>Risk puanının gelişimi</h2>
+    <div class="alt">Toplam ve üç blok · yıl sonları ve 2026 çeyrek/ay sonları</div>
+    <div id="grafik"></div>
+    <div class="lejant" id="lejant"></div>
+  </section>
+
+  <section class="kart" aria-labelledby="sinyal-baslik" id="sinyal-kart">
+    <div class="sinyal-bas">
+      <div><h2 id="sinyal-baslik">Erken uyarı sinyalleri</h2>
+        <div class="alt">Aylık veriler gelmeden önce bozulmayı yakalamak için beş haftalık gösterge. Hepsi <b>son 6 haftaya</b> bakar ve <b>toplam puana girmez</b>.</div></div>
+      <div class="genel" id="sinyal-genel"></div>
+    </div>
+    <div class="sinyal-izgara" id="sinyaller"></div>
+    <div class="not sinyal-not">Grafikler son 52 haftayı gösterir; her çubuk o haftadaki 6 haftalık değeri, rengi o haftanın durumunu gösterir. Kesikli çizgiler sarı ve kırmızı eşiktir. Genel durum: 2 veya daha fazla kırmızı → Kırmızı · 1 kırmızı ya da 2 veya daha fazla sarı → Sarı · diğer → Olağan.</div>
+  </section>
+
+  <section class="kart" aria-labelledby="sen-baslik">
+    <div class="ust"><div><h2 id="sen-baslik">Senaryo hesaplayıcı</h2>
+      <div class="alt">Çubukları sağa sola kaydırın: göstergeler şu değerleri alırsa risk puanı nereye gider? Başlangıç değerleri <b id="baz-etiket"></b> verisidir.</div></div>
+      <div class="btnlar" id="hazir"></div></div>
+    <div class="senaryo" style="margin-top:14px">
+      <div id="kaydiricilar"></div>
+      <aside class="sonuc" aria-live="polite">
+        <div class="tile" id="sen-kutu"><div class="ad">Senaryo risk puanı</div>
+          <div class="sayi" id="sen-toplam">–</div>
+          <div><span class="pill" id="sen-bant"></span> <span class="fark" id="sen-fark"></span></div></div>
+        <div class="kart"><div class="bloklar-mini" id="sen-bloklar"></div></div>
+        <div class="not" id="sen-not">Hazır senaryolar yalnızca örnektir; tahmin değildir.</div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="kart">
+    <div class="ust"><h2>Gösterge ayrıntısı</h2>
+      <label class="alt">Dönem <select id="donem-sec"></select></label></div>
+    <div class="tablo-sar"><table><thead><tr><th>Kod</th><th>Gösterge</th><th class="s">Değer</th><th class="s">Puan</th><th class="s">Ağırlık</th><th>Kaynak / not</th></tr></thead><tbody id="tablo"></tbody></table></div>
+  </section>
+
+  <section class="kart" aria-labelledby="gecmis-baslik">
+    <div class="ust"><div><h2 id="gecmis-baslik">Göstergelerin geçmiş değerleri</h2>
+      <div class="alt">Her göstergenin tüm dönemlerdeki değeri. Hücre rengi o dönemdeki risk puanının bandını gösterir; üzerine gelince puan görünür. Soluk ve * işaretli değerler önceki dönemden taşınmıştır. En alttaki "Sonrasında ne oldu?" bölümü, o tarihte puanı görseydiniz sonraki 3 ayda kur ve borsada ne olduğunu gösterir.</div></div>
+      <div class="btnlar" role="group" aria-label="Gösterim"><button type="button" class="ana" id="g-deger">Değerler</button><button type="button" id="g-puan">Risk puanları</button></div></div>
+    <div class="tablo-sar"><table class="gecmis"><thead id="gecmis-bas"></thead><tbody id="gecmis"></tbody></table></div>
+    <div class="alt" style="margin-top:10px">Döviz sepeti = 0,5 × ABD doları + 0,5 × euro (TCMB döviz alış kuru, ayın son iş günü). BIST 100 kapanış değeri; 2020 öncesi değerler Borsa İstanbul'un Temmuz 2020'de endeksten iki sıfır atmasına göre uyarlanmıştır. Kaynak: TCMB EVDS. Değişimler nominal TL'dir; enflasyon dönemlerinde borsadaki artışın bir kısmı fiyat artışını yansıtır. Soluk ve * işaretli 3 ay sonrası değerleri, 3 ay henüz dolmadığı için en son mevcut günün verisidir.</div>
+  </section>
+
+  <footer class="not">
+    Hesap: her gösterge beş eşikle (0/25/50/75/100) doğrusal puanlanır. Blok puanı göstergelerin ağırlıklı ortalaması; boş göstergenin ağırlığı blok içinde dağıtılır.
+    Toplam = 0,4 × Makro + 0,4 × Reel sektör + 0,2 × Piyasa. Eşikler kalibre edilmemiştir; puan bir olasılık değildir. Kaynaklar: TCMB, TÜİK, BDDK, Hazine ve Maliye Bakanlığı, TBB Risk Merkezi, İSO/S&amp;P Global.
+    <span id="olusturma"></span>
+  </footer>
+</div>
+
+<script id="veri" type="application/json">{"olusturma": "2026-11-24", "bloklar": {"Makro": 0.4, "Reel sektör ve ödeme": 0.4, "Piyasa ve davranış": 0.2}, "gostergeler": [{"kod": "M1", "blok": "Makro", "ad": "Yıllık TÜFE", "birim": "%", "agirlik": 20.0, "esikler": [10.0, 20.0, 30.0, 45.0, 65.0], "kaynak": "TÜİK", "nasil": "Ay sonu yıllık TÜFE değişimi"}, {"kod": "M2", "blok": "Makro", "ad": "12 ay sonrası enflasyon beklentisi", "birim": "%", "agirlik": 5.0, "esikler": [8.0, 15.0, 22.0, 30.0, 40.0], "kaynak": "TCMB Piyasa Katılımcıları Anketi", "nasil": "Ayın anketindeki 12 ay sonrası TÜFE beklentisi"}, {"kod": "M3", "blok": "Makro", "ad": "Reel politika faizi (beklenti ve TÜFE ortalamasıyla)", "birim": "%", "agirlik": 15.0, "esikler": [5.0, 2.0, 0.0, -5.0, -15.0], "kaynak": "TCMB (politika faizi, Piyasa Katılımcıları Anketi) + TÜİK (TÜFE)", "nasil": "100×((1+politika faizi/100)/(1+ortalama(M2, M1)/100)−1); M2 = 12 ay sonrası TÜFE beklentisi, M1 = yıllık TÜFE (19.11.2026'dan beri; önceden yalnız M2 ile)"}, {"kod": "M4", "blok": "Makro", "ad": "12 aylık cari açık / GSYH", "birim": "%", "agirlik": 15.0, "esikler": [1.0, 2.0, 3.5, 5.0, 7.0], "kaynak": "TCMB ödemeler dengesi + TÜİK GSYH", "nasil": "Son 12 ay cari açık / yıllık GSYH (açık pozitif yazılır)"}, {"kod": "M5", "blok": "Makro", "ad": "Swap hariç net rezerv", "birim": "milyar $", "agirlik": 15.0, "esikler": [60.0, 40.0, 20.0, 0.0, -40.0], "kaynak": "TCMB haftalık verisinden bankacı hesabı (basın)", "nasil": "Ayın son haftasının değeri"}, {"kod": "M6", "blok": "Makro", "ad": "Brüt rezerv / kısa vadeli dış borç", "birim": "%", "agirlik": 10.0, "esikler": [100.0, 80.0, 65.0, 50.0, 35.0], "kaynak": "TCMB", "nasil": "Brüt rezerv / kalan vadeye göre kısa vadeli dış borç"}, {"kod": "M7", "blok": "Makro", "ad": "12 aylık bütçe dengesi / GSYH", "birim": "%", "agirlik": 10.0, "esikler": [-1.0, -2.0, -3.5, -5.0, -7.0], "kaynak": "Hazine ve Maliye Bakanlığı", "nasil": "Son 12 ay merkezi yönetim bütçe dengesi / GSYH (açık eksi yazılır)"}, {"kod": "M8", "blok": "Makro", "ad": "Faiz gideri / vergi geliri", "birim": "%", "agirlik": 10.0, "esikler": [10.0, 13.0, 16.0, 20.0, 25.0], "kaynak": "Hazine ve Maliye Bakanlığı merkezi yönetim bütçesi (TCMB EVDS: TP.KB.GID152, TP.KB.GEL003)", "nasil": "Son 12 ayın faiz giderleri toplamı ÷ son 12 ayın vergi gelirleri toplamı × 100. Hesap: faiz_vergi.py"}, {"kod": "R1", "blok": "Reel sektör ve ödeme", "ad": "Karşılıksız çek oranı (tutar)", "birim": "%", "agirlik": 25.0, "esikler": [1.5, 2.5, 3.5, 4.5, 6.0], "kaynak": "TBB Risk Merkezi / TCMB", "nasil": "Aylık karşılıksız çek tutarı / ibraz edilen çek tutarı"}, {"kod": "R2", "blok": "Reel sektör ve ödeme", "ad": "Karşılıksız çek oranı (adet)", "birim": "%", "agirlik": 10.0, "esikler": [1.0, 2.0, 3.0, 4.0, 5.0], "kaynak": "TBB Risk Merkezi / TCMB", "nasil": "Aylık karşılıksız çek adedi / ibraz edilen çek adedi"}, {"kod": "R3", "blok": "Reel sektör ve ödeme", "ad": "Takipteki krediler: seviye + eğilim", "birim": "puan (0–100)", "agirlik": 15.0, "esikler": [0.0, 25.0, 50.0, 75.0, 100.0], "kaynak": "BDDK Haftalık Bülten (sektör, TL): Toplam Krediler (2+10), Takipteki Alacaklar (2+8)", "nasil": "büyük(seviye puanı, 0,5×seviye + 0,5×eğilim). Seviye = haftalık takipteki oranı, eşikler %2/3/4/5,5/7. Eğilim = oranın son 13 haftadaki değişimi, eşikler 0/+0,10/+0,25/+0,50/+0,80 puan. Hesap: npl_trend.py"}, {"kod": "R4", "blok": "Reel sektör ve ödeme", "ad": "Sanayi üretimi (3 ay ort. yıllık değişim)", "birim": "%", "agirlik": 15.0, "esikler": [5.0, 2.0, 0.0, -3.0, -7.0], "kaynak": "TÜİK", "nasil": "Son 3 ayın yıllık değişimlerinin ortalaması"}, {"kod": "R5", "blok": "Reel sektör ve ödeme", "ad": "İmalat PMI (3 ay ort.)", "birim": "endeks", "agirlik": 10.0, "esikler": [52.0, 50.0, 48.0, 46.0, 43.0], "kaynak": "İSO / S&P Global", "nasil": "Son 3 ayın PMI ortalaması"}, {"kod": "R6", "blok": "Reel sektör ve ödeme", "ad": "Kapasite kullanım oranı", "birim": "%", "agirlik": 10.0, "esikler": [78.0, 76.0, 74.0, 72.0, 68.0], "kaynak": "TCMB", "nasil": "Mevsimsellikten arındırılmış KKO"}, {"kod": "R7", "blok": "Reel sektör ve ödeme", "ad": "Atıl işgücü oranı", "birim": "%", "agirlik": 15.0, "esikler": [18.0, 22.0, 26.0, 30.0, 34.0], "kaynak": "TÜİK", "nasil": "Mevsimsellikten arındırılmış atıl işgücü oranı"}, {"kod": "P1", "blok": "Piyasa ve davranış", "ad": "5 yıllık CDS", "birim": "baz puan", "agirlik": 30.0, "esikler": [200.0, 300.0, 400.0, 550.0, 800.0], "kaynak": "S&P Global (basın / banka bültenleri)", "nasil": "Ay sonu değeri"}, {"kod": "P2", "blok": "Piyasa ve davranış", "ad": "Kur–carry baskısı (bileşik)", "birim": "puan (0–100)", "agirlik": 25.0, "esikler": [0.0, 25.0, 50.0, 75.0, 100.0], "kaynak": "TCMB EVDS: Mevduat Faiz Oranları (Akım) TP.TRY.MT02, TP.TRYTAS.MT02, TP.USD.MT02, TP.EUR.MT02; döviz alış kurları TP.DK.USD.A.YTL, TP.DK.EUR.A.YTL (ay sonu)", "nasil": "0,5×A + 0,5×B. A = son 3 ayda sepet kur (0,5 USD + 0,5 EUR) artışı ÷ aynı dönemin TL mevduat getirisi (TL tüm ve tasarruf 3 aya kadar faizinin küçüğü); eşikler %25/50/100/200/400. B = carry getirisinin (TL getirisi ile dolar-euro mevduatı + kur getirisi farkı, 3 ay) 3 ve 6 ay önceye göre değişiminin puan ortalaması; eşikler 0/−2/−5/−10/−20. Hesap: kur_carry.py"}, {"kod": "P3", "blok": "Piyasa ve davranış", "ad": "Bireysel döviz talebi (BDTE)", "birim": "milyar $ (13 hafta)", "agirlik": 25.0, "esikler": [-2.0, 0.0, 2.0, 5.0, 10.0], "kaynak": "TCMB EVDS: Yabancı Para Mevduatta Haftalık Değişim ve Parite Etkisi — gerçek kişiler (TP.HPBITABLO5.3+5.4+5.5)", "nasil": "Son 13 haftada gerçek kişilerin altın hariç, parite etkisinden arındırılmış döviz mevduatı değişimi (milyar ABD doları). Artı = dövize giriş. Hesap: bdte.py"}, {"kod": "P4", "blok": "Piyasa ve davranış", "ad": "Tüketici güveni", "birim": "endeks", "agirlik": 20.0, "esikler": [95.0, 85.0, 78.0, 72.0, 65.0], "kaynak": "TÜİK", "nasil": "Aylık tüketici güven endeksi"}], "seri": [{"donem": "2016-12", "etiket": "Ara 2016", "toplam": 27.4876, "bloklar": {"Makro": 23.6221, "Reel sektör ve ödeme": 28.1637, "Piyasa ve davranış": 33.8661}, "gostergeler": {"M1": {"deger": 8.53, "puan": 0.0, "not": ""}, "M2": {"deger": 8.04, "puan": 0.1429, "not": ""}, "M3": {"deger": -0.26, "puan": 51.3, "not": "1 hafta repo %8,0 ile; o dönem fiili fonlama maliyeti biraz daha yüksekti; Politika faizi %8,00; reelleştirme: ortalama(beklenti %8,04, yıllık TÜFE %8,53) = %8,29"}, "M4": {"deger": 2.55, "puan": 34.1667, "not": ""}, "M5": {"deger": 35.2, "puan": 31.0, "not": "TCMB analitik bilanço net dış varlıklar / kur, vadeli döviz yükümlülükleri düşülerek (Claude hesabı); swaplar yok denecek kadar azdı"}, "M6": {"deger": 64.98, "puan": 50.0333, "not": ""}, "M7": {"deger": -1.14, "puan": 3.5, "not": ""}, "M8": {"deger": 10.95, "puan": 7.9167, "not": "HMB merkezi yönetim bütçesi (TCMB EVDS), son 12 ay faiz gideri / vergi geliri"}, "R1": {"deger": 3.33, "puan": 45.75, "not": ""}, "R2": {"deger": 3.35, "puan": 58.75, "not": ""}, "R3": {"deger": 30.8, "puan": 30.8, "not": "BDDK haftalık 2016-12-30: oran %3,23 (seviye puanı 31), 13 haftada -0,085 puan (eğilim puanı 0)"}, "R4": {"deger": 3.47, "puan": 12.75, "not": ""}, "R5": {"deger": 48.77, "puan": 40.375, "not": "İSO PMI Eki 49,8 / Kas 48,8 / Ara 47,7"}, "R6": {"deger": 78.0, "puan": 0.0, "not": ""}, "R7": {"deger": 18.3, "puan": 1.875, "not": "TÜİK 2021 öncesi dönem; yöntem değişikliği nedeniyle sonraki yıllarla tam karşılaştırılamaz"}, "P1": {"deger": 266.79, "puan": 16.6975, "not": "Yıl sonu kapanışı (ikincil kaynak: yatirimanaliz, doviz724)"}, "P2": {"deger": 86.51, "puan": 86.51, "not": "Faizi yeme oranı %598 (A=100); carry %-10,6, 3 ayda -8,4 / 6 ayda -11,6 puan değişim (B=73); TL faizi net %9,17 (brüt %10,79, stopaj TL %15,0 / döviz %18,0; 2016-09 sonu), sepet 3 ayda %13,7"}, "P3": {"deger": -0.965, "puan": 12.9375, "not": "Son 13 hafta (2016-12-30 haftasına kadar), gerçek kişiler, altın hariç, parite arındırılmış, TCMB"}, "P4": {"deger": 87.01, "puan": 19.975, "not": ""}}}, {"donem": "2017-12", "etiket": "Ara 2017", "toplam": 20.7647, "bloklar": {"Makro": 32.2171, "Reel sektör ve ödeme": 9.4645, "Piyasa ve davranış": 20.46}, "gostergeler": {"M1": {"deger": 11.92, "puan": 4.8, "not": ""}, "M2": {"deger": 9.3, "puan": 4.6429, "not": ""}, "M3": {"deger": -2.36, "puan": 61.8, "not": "1 hafta repo %8,0 ile. Dikkat: Aralık 2017 fiili fonlama maliyeti (geç likidite penceresi) %12,75 idi; onunla reel faiz ≈ +3,2 olurdu; Politika faizi %8,00; reelleştirme: ortalama(beklenti %9,30, yıllık TÜFE %11,92) = %10,61"}, "M4": {"deger": 4.06, "puan": 59.3333, "not": ""}, "M5": {"deger": 31.2, "puan": 36.0, "not": "TCMB analitik bilanço net dış varlıklar / kur (Claude hesabı); swap yükümlülüğü yok"}, "M6": {"deger": 60.67, "puan": 57.2167, "not": ""}, "M7": {"deger": -1.5, "puan": 12.5, "not": ""}, "M8": {"deger": 10.58, "puan": 4.8333, "not": "HMB merkezi yönetim bütçesi (TCMB EVDS), son 12 ay faiz gideri / vergi geliri"}, "R1": {"deger": 2.07, "puan": 14.25, "not": ""}, "R2": {"deger": 1.94, "puan": 23.5, "not": ""}, "R3": {"deger": 23.68, "puan": 23.68, "not": "BDDK haftalık 2017-12-29: oran %2,95 (seviye puanı 24), 13 haftada -0,095 puan (eğilim puanı 0)"}, "R4": {"deger": 10.8, "puan": 0.0, "not": ""}, "R5": {"deger": 53.53, "puan": 0.0, "not": "İSO PMI Eki 52,8 / Kas 52,9 / Ara 54,9"}, "R6": {"deger": 79.0, "puan": 0.0, "not": ""}, "R7": {"deger": 16.1, "puan": 0.0, "not": ""}, "P1": {"deger": 160.0, "puan": 0.0, "not": "Yaklaşık; yıl sonu ~160 (ikincil kaynaklar)"}, "P2": {"deger": 67.46, "puan": 67.46, "not": "Faizi yeme oranı %275 (A=84); carry %-4,9, 3 ayda -3,7 / 6 ayda -7,4 puan değişim (B=51); TL faizi net %10,95 (brüt %12,88, stopaj TL %15,0 / döviz %18,0; 2017-09 sonu), sepet 3 ayda %7,5"}, "P3": {"deger": -4.076, "puan": 0.0, "not": "Son 13 hafta (2017-12-29 haftasına kadar), gerçek kişiler, altın hariç, parite arındırılmış, TCMB"}, "P4": {"deger": 87.81, "puan": 17.975, "not": ""}}}, {"donem": "2018-12", "etiket": "Ara 2018", "toplam": 45.9293, "bloklar": {"Makro": 26.9411, "Reel sektör ve ödeme": 68.0737, "Piyasa ve davranış": 39.6168}, "gostergeler": {"M1": {"deger": 20.3, "puan": 25.75, "not": ""}, "M2": {"deger": 16.46, "puan": 30.2143, "not": ""}, "M3": {"deger": 4.74, "puan": 2.1667, "not": "Politika faizi %23,99; reelleştirme: ortalama(beklenti %16,46, yıllık TÜFE %20,30) = %18,38"}, "M4": {"deger": 1.83, "puan": 20.75, "not": "TCMB revize ödemeler dengesi serisi (12 aylık açık 14,6 milyar $)"}, "M5": {"deger": 28.5, "puan": 39.375, "not": "Claude hesabı: net dış varlıklar 30,3 − vadeli yükümlülük 1,8 milyar $"}, "M6": {"deger": 52.53, "puan": 70.7833, "not": ""}, "M7": {"deger": -1.91, "puan": 22.75, "not": ""}, "M8": {"deger": 11.9, "puan": 15.8333, "not": "HMB merkezi yönetim bütçesi (TCMB EVDS), son 12 ay faiz gideri / vergi geliri"}, "R1": {"deger": 4.76, "puan": 79.3333, "not": ""}, "R2": {"deger": 4.81, "puan": 95.25, "not": ""}, "R3": {"deger": 64.63, "puan": 64.63, "not": "BDDK haftalık 2018-12-28: oran %3,77 (seviye puanı 44), 13 haftada +0,621 puan (eğilim puanı 85); dönemde portföy satışı işareti var"}, "R4": {"deger": -7.79, "puan": 100.0, "not": ""}, "R5": {"deger": 44.4, "puan": 88.3333, "not": "İSO PMI Eki 44,3 / Kas 44,7 / Ara 44,2"}, "R6": {"deger": 74.0, "puan": 50.0, "not": ""}, "R7": {"deger": 18.2, "puan": 1.25, "not": ""}, "P1": {"deger": 348.0, "puan": 37.0, "not": "Yaklaşık; yıl sonu ~348 (doviz724 yıllık değişimden türetildi)"}, "P2": {"deger": 0.0, "puan": 0.0, "not": "Faizi yeme oranı %-243 (A=0); carry %22,6, 3 ayda 45,0 / 6 ayda 31,1 puan değişim (B=0); TL faizi net %23,81 (brüt %25,06, stopaj TL %5,0 / döviz %20,0; 2018-09 sonu), sepet 3 ayda %-14,4"}, "P3": {"deger": 5.762, "puan": 78.81, "not": "Son 13 hafta (2018-12-28 haftasına kadar), gerçek kişiler, altın hariç, parite arındırılmış, TCMB"}, "P4": {"deger": 79.66, "puan": 44.0714, "not": ""}}}, {"donem": "2019-12", "etiket": "Ara 2019", "toplam": 25.8508, "bloklar": {"Makro": 27.1667, "Reel sektör ve ödeme": 21.1247, "Piyasa ve davranış": 32.6708}, "gostergeler": {"M1": {"deger": 11.84, "puan": 4.6, "not": ""}, "M2": {"deger": 10.07, "puan": 7.3929, "not": ""}, "M3": {"deger": 0.94, "puan": 38.25, "not": "Politika faizi %12,00; reelleştirme: ortalama(beklenti %10,07, yıllık TÜFE %11,84) = %10,96"}, "M4": {"deger": -1.94, "puan": 0.0, "not": "Cari fazla (12 aylık +15,0 milyar $, TCMB revize seri)"}, "M5": {"deger": 22.9, "puan": 46.375, "not": "Claude hesabı 22,9; karşılaştırma: QNB 22,3, M. Eğilmez 24,1"}, "M6": {"deger": 63.2, "puan": 53.0, "not": ""}, "M7": {"deger": -2.81, "puan": 38.5, "not": ""}, "M8": {"deger": 14.84, "puan": 40.3333, "not": "HMB merkezi yönetim bütçesi (TCMB EVDS), son 12 ay faiz gideri / vergi geliri"}, "R1": {"deger": 1.87, "puan": 9.25, "not": ""}, "R2": {"deger": 1.95, "puan": 23.75, "not": ""}, "R3": {"deger": 73.79, "puan": 73.79, "not": "BDDK haftalık 2019-12-27: oran %5,30 (seviye puanı 72), 13 haftada +0,510 puan (eğilim puanı 76)"}, "R4": {"deger": 5.91, "puan": 0.0, "not": ""}, "R5": {"deger": 49.33, "puan": 33.375, "not": "İSO PMI Eki 49,0 / Kas 49,5 / Ara 49,5"}, "R6": {"deger": 76.9, "puan": 13.75, "not": ""}, "R7": {"deger": 18.7, "puan": 4.375, "not": ""}, "P1": {"deger": 278.3, "puan": 19.575, "not": "30 Aralık 2019 değeri (doviz724)"}, "P2": {"deger": 64.87, "puan": 64.87, "not": "Faizi yeme oranı %202 (A=75); carry %-3,2, 3 ayda -11,8 / 6 ayda -2,5 puan değişim (B=54); TL faizi net %12,54 (brüt %14,75, stopaj TL %15,0 / döviz %20,0; 2019-09 sonu), sepet 3 ayda %6,3"}, "P3": {"deger": -1.245, "puan": 9.4375, "not": "Son 13 hafta (2019-12-27 haftasına kadar), gerçek kişiler, altın hariç, parite arındırılmış, TCMB"}, "P4": {"deger": 80.49, "puan": 41.1071, "not": ""}}}, {"donem": "2020-12", "etiket": "Ara 2020", "toplam": 34.1844, "bloklar": {"Makro": 45.9855, "Reel sektör ve ödeme": 20.5307, "Piyasa ve davranış": 37.8895}, "gostergeler": {"M1": {"deger": 14.6, "puan": 11.5, "not": ""}, "M2": {"deger": 10.84, "puan": 10.1429, "not": ""}, "M3": {"deger": 3.8, "puan": 10.0, "not": "Politika faizi %17,00; reelleştirme: ortalama(beklenti %10,84, yıllık TÜFE %14,60) = %12,72"}, "M4": {"deger": 4.24, "puan": 62.3333, "not": ""}, "M5": {"deger": -40.7, "puan": 100.0, "not": "Claude hesabı −40,7; karşılaştırma: M. Eğilmez −41,2. 2021 sonrası değerler basındaki bankacı hesabıdır (yöntem farkı birkaç milyar $)"}, "M6": {"deger": 50.13, "puan": 74.7833, "not": ""}, "M7": {"deger": -3.38, "puan": 48.0, "not": ""}, "M8": {"deger": 16.08, "puan": 50.5, "not": "HMB merkezi yönetim bütçesi (TCMB EVDS), son 12 ay faiz gideri / vergi geliri"}, "R1": {"deger": 1.04, "puan": 0.0, "not": "Pandemi döneminde çek ödemelerine ilişkin düzenlemeler oranı düşürmüş olabilir"}, "R2": {"deger": 0.96, "puan": 0.0, "not": "Pandemi döneminde çek düzenlemeleri"}, "R3": {"deger": 50.83, "puan": 50.83, "not": "BDDK haftalık 2020-12-31: oran %4,05 (seviye puanı 51), 13 haftada -0,020 puan (eğilim puanı 0)"}, "R4": {"deger": 10.19, "puan": 0.0, "not": ""}, "R5": {"deger": 52.03, "puan": 0.0, "not": "İSO PMI Eki 53,9 / Kas 51,4 / Ara 50,8"}, "R6": {"deger": 75.4, "puan": 32.5, "not": ""}, "R7": {"deger": 28.3, "puan": 64.375, "not": "Pandemi etkisi; TÜİK 2021 yöntem değişikliği öncesi dönem — karşılaştırma dikkatli yapılmalı"}, "P1": {"deger": 306.47, "puan": 26.6175, "not": "Yıl sonu kapanışı (ikincil kaynak: yatirimanaliz)"}, "P2": {"deger": 0.0, "puan": 0.0, "not": "Faizi yeme oranı %-124 (A=0); carry %6,5, 3 ayda 19,1 / 6 ayda 10,2 puan değişim (B=0); TL faizi net %11,26 (brüt %11,85, stopaj TL %5,0 / döviz %20,0; 2020-09 sonu), sepet 3 ayda %-3,5"}, "P3": {"deger": 6.952, "puan": 84.76, "not": "Son 13 hafta (2020-12-25 haftasına kadar), gerçek kişiler, altın hariç, parite arındırılmış, TCMB"}, "P4": {"deger": 79.8, "puan": 43.5714, "not": ""}}}, {"donem": "2021-12", "etiket": "Ara 2021", "toplam": 42.9376, "bloklar": {"Makro": 56.3348, "Reel sektör ve ödeme": 8.8502, "Piyasa ve davranış": 84.3179}, "gostergeler": {"M1": {"deger": 36.08, "puan": 60.1333, "not": ""}, "M2": {"deger": 21.39, "puan": 47.8214, "not": ""}, "M3": {"deger": -11.45, "puan": 91.125, "not": "Politika faizi %14,00; reelleştirme: ortalama(beklenti %21,39, yıllık TÜFE %36,08) = %28,73"}, "M4": {"deger": 0.85, "puan": 0.0, "not": ""}, "M5": {"deger": -56.7, "puan": 100.0, "not": ""}, "M6": {"deger": 64.71, "puan": 50.4833, "not": ""}, "M7": {"deger": -2.66, "puan": 36.0, "not": ""}, "M8": {"deger": 15.52, "puan": 46.0, "not": "HMB merkezi yönetim bütçesi (TCMB EVDS), son 12 ay faiz gideri / vergi geliri"}, "R1": {"deger": 0.92, "puan": 0.0, "not": ""}, "R2": {"deger": 0.87, "puan": 0.0, "not": ""}, "R3": {"deger": 28.96, "puan": 28.96, "not": "BDDK haftalık 2021-12-31: oran %3,16 (seviye puanı 29), 13 haftada -0,403 puan (eğilim puanı 0); dönemde portföy satışı işareti var; dönemde kur etkisi işareti var"}, "R4": {"deger": 10.92, "puan": 0.0, "not": ""}, "R5": {"deger": 51.77, "puan": 2.875, "not": ""}, "R6": {"deger": 78.4, "puan": 0.0, "not": ""}, "R7": {"deger": 22.5, "puan": 28.125, "not": ""}, "P1": {"deger": 555.0, "puan": 75.5, "not": "Yaklaşık (Yapı Kredi bülteni 551–559)"}, "P2": {"deger": 100.0, "puan": 100.0, "not": "Faizi yeme oranı %988 (A=100); carry %-27,8, 3 ayda -31,5 / 6 ayda -26,7 puan değişim (B=100); TL faizi net %18,01 (brüt %18,96, stopaj TL %5,0 / döviz %20,0; 2021-09 sonu), sepet 3 ayda %44,4"}, "P3": {"deger": 5.34, "puan": 76.7, "not": "Son 13 hafta (2021-12-31 haftasına kadar), gerçek kişiler, altın hariç, parite arındırılmış, TCMB; KKM dönemi: dövizden KKM'ye geçiş çıkış olarak görünür"}, "P4": {"deger": 68.51, "puan": 87.4643, "not": ""}}}, {"donem": "2022-12", "etiket": "Ara 2022", "toplam": 44.4217, "bloklar": {"Makro": 72.8654, "Reel sektör ve ödeme": 18.006, "Piyasa ve davranış": 40.3658}, "gostergeler": {"M1": {"deger": 64.27, "puan": 99.0875, "not": ""}, "M2": {"deger": 34.92, "puan": 87.3, "not": ""}, "M3": {"deger": -27.14, "puan": 100.0, "not": "Politika faizi %9,00; reelleştirme: ortalama(beklenti %34,92, yıllık TÜFE %64,27) = %49,59"}, "M4": {"deger": 5.11, "puan": 76.375, "not": ""}, "M5": {"deger": -43.9, "puan": 100.0, "not": "Tek kaynak (Ziraat Katılım, 23 Ara haftası)"}, "M6": {"deger": 67.69, "puan": 45.5167, "not": ""}, "M7": {"deger": -0.92, "puan": 0.0, "not": ""}, "M8": {"deger": 13.21, "puan": 26.75, "not": "HMB merkezi yönetim bütçesi (TCMB EVDS), son 12 ay faiz gideri / vergi geliri"}, "R1": {"deger": 0.77, "puan": 0.0, "not": ""}, "R2": {"deger": 0.75, "puan": 0.0, "not": ""}, "R3": {"deger": 2.29, "puan": 2.29, "not": "BDDK haftalık 2022-12-30: oran %2,09 (seviye puanı 2), 13 haftada -0,201 puan (eğilim puanı 0)"}, "R4": {"deger": 0.81, "puan": 39.875, "not": ""}, "R5": {"deger": 46.73, "puan": 65.875, "not": ""}, "R6": {"deger": 76.4, "puan": 20.0, "not": ""}, "R7": {"deger": 21.3, "puan": 20.625, "not": ""}, "P1": {"deger": 512.8, "puan": 68.8, "not": ""}, "P2": {"deger": 30.17, "puan": 30.17, "not": "Faizi yeme oranı %141 (A=60); carry %-2,1, 3 ayda 0,6 / 6 ayda 4,0 puan değişim (B=0); TL faizi net %16,76 (brüt %17,64, stopaj TL %5,0 / döviz %20,0; 2022-09 sonu), sepet 3 ayda %5,9"}, "P3": {"deger": -14.774, "puan": 0.0, "not": "Son 13 hafta (2022-12-30 haftasına kadar), gerçek kişiler, altın hariç, parite arındırılmış, TCMB; KKM dönemi: dövizden KKM'ye geçiş çıkış olarak görünür"}, "P4": {"deger": 75.38, "puan": 60.9167, "not": ""}}}, {"donem": "2023-12", "etiket": "Ara 2023", "toplam": 42.8844, "bloklar": {"Makro": 76.8865, "Reel sektör ve ödeme": 17.2928, "Piyasa ve davranış": 26.0633}, "gostergeler": {"M1": {"deger": 64.77, "puan": 99.7125, "not": ""}, "M2": {"deger": 41.23, "puan": 100.0, "not": ""}, "M3": {"deger": -6.86, "puan": 79.65, "not": "Politika faizi %42,50; reelleştirme: ortalama(beklenti %41,23, yıllık TÜFE %64,77) = %53,00"}, "M4": {"deger": 3.7, "puan": 53.3333, "not": ""}, "M5": {"deger": -37.5, "puan": 98.4375, "not": ""}, "M6": {"deger": 62.24, "puan": 54.6, "not": ""}, "M7": {"deger": -5.09, "puan": 76.125, "not": ""}, "M8": {"deger": 14.99, "puan": 41.5833, "not": "HMB merkezi yönetim bütçesi (TCMB EVDS), son 12 ay faiz gideri / vergi geliri"}, "R1": {"deger": 1.48, "puan": 0.0, "not": ""}, "R2": {"deger": 1.09, "puan": 2.25, "not": ""}, "R3": {"deger": 8.66, "puan": 8.66, "not": "BDDK haftalık 2023-12-29: oran %1,62 (seviye puanı 0), 13 haftada +0,069 puan (eğilim puanı 17)"}, "R4": {"deger": 2.29, "puan": 22.5833, "not": ""}, "R5": {"deger": 47.67, "puan": 54.125, "not": ""}, "R6": {"deger": 77.3, "puan": 8.75, "not": ""}, "R7": {"deger": 24.5, "puan": 40.625, "not": ""}, "P1": {"deger": 285.0, "puan": 21.25, "not": ""}, "P2": {"deger": 36.82, "puan": 36.82, "not": "Faizi yeme oranı %101 (A=50); carry %-0,4, 3 ayda -4,6 / 6 ayda 20,8 puan değişim (B=23); TL faizi net %41,84 (brüt %44,04, stopaj TL %5,0 / döviz %25,0; 2023-09 sonu), sepet 3 ayda %10,5"}, "P3": {"deger": -3.248, "puan": 0.0, "not": "Son 13 hafta (2023-12-29 haftasına kadar), gerçek kişiler, altın hariç, parite arındırılmış, TCMB; KKM dönemi: dövizden KKM'ye geçiş çıkış olarak görünür"}, "P4": {"deger": 77.42, "puan": 52.4167, "not": ""}}}, {"donem": "2024-12", "etiket": "Ara 2024", "toplam": 29.4617, "bloklar": {"Makro": 37.9176, "Reel sektör ve ödeme": 29.542, "Piyasa ve davranış": 12.3893}, "gostergeler": {"M1": {"deger": 44.38, "puan": 73.9667, "not": ""}, "M2": {"deger": 27.07, "puan": 65.8438, "not": ""}, "M3": {"deger": 8.68, "puan": 0.0, "not": "Politika faizi %47,50; reelleştirme: ortalama(beklenti %27,07, yıllık TÜFE %44,38) = %35,73"}, "M4": {"deger": 1.0, "puan": 0.0, "not": ""}, "M5": {"deger": 45.2, "puan": 18.5, "not": "TCMB yıllık raporu 31.12.2024 (haftalık 27 Ara: 43,7)"}, "M6": {"deger": 70.07, "puan": 41.55, "not": ""}, "M7": {"deger": -4.72, "puan": 70.3333, "not": ""}, "M8": {"deger": 17.39, "puan": 58.6875, "not": "HMB merkezi yönetim bütçesi (TCMB EVDS), son 12 ay faiz gideri / vergi geliri"}, "R1": {"deger": 2.32, "puan": 20.5, "not": ""}, "R2": {"deger": 1.71, "puan": 17.75, "not": ""}, "R3": {"deger": 7.28, "puan": 7.28, "not": "BDDK haftalık 2024-12-27: oran %1,78 (seviye puanı 0), 13 haftada +0,058 puan (eğilim puanı 15); dönemde portföy satışı işareti var"}, "R4": {"deger": 2.08, "puan": 24.3333, "not": ""}, "R5": {"deger": 47.73, "puan": 53.375, "not": ""}, "R6": {"deger": 75.6, "puan": 30.0, "not": ""}, "R7": {"deger": 28.2, "puan": 63.75, "not": ""}, "P1": {"deger": 263.0, "puan": 15.75, "not": ""}, "P2": {"deger": 0.0, "puan": 0.0, "not": "Faizi yeme oranı %-1 (A=0); carry %13,4, 3 ayda 6,7 / 6 ayda 0,1 puan değişim (B=0); TL faizi net %54,62 (brüt %59,05, stopaj TL %7,5 / döviz %25,0; 2024-09 sonu), sepet 3 ayda %-0,2"}, "P3": {"deger": -2.219, "puan": 0.0, "not": "Son 13 hafta (2024-12-27 haftasına kadar), gerçek kişiler, altın hariç, parite arındırılmış, TCMB"}, "P4": {"deger": 81.27, "puan": 38.3214, "not": ""}}}, {"donem": "2025-12", "etiket": "Ara 2025", "toplam": 29.7749, "bloklar": {"Makro": 28.9364, "Reel sektör ve ödeme": 41.371, "Piyasa ve davranış": 8.2598}, "gostergeler": {"M1": {"deger": 30.89, "puan": 51.4833, "not": ""}, "M2": {"deger": 23.35, "puan": 54.2188, "not": ""}, "M3": {"deger": 8.56, "puan": 0.0, "not": "Politika faizi %38,00; reelleştirme: ortalama(beklenti %23,35, yıllık TÜFE %30,89) = %27,12"}, "M4": {"deger": 1.9, "puan": 22.5, "not": ""}, "M5": {"deger": 67.5, "puan": 0.0, "not": ""}, "M6": {"deger": 84.12, "puan": 19.85, "not": ""}, "M7": {"deger": -2.87, "puan": 39.5, "not": ""}, "M8": {"deger": 18.59, "puan": 66.1875, "not": "HMB merkezi yönetim bütçesi (TCMB EVDS), son 12 ay faiz gideri / vergi geliri"}, "R1": {"deger": 2.85, "puan": 33.75, "not": ""}, "R2": {"deger": 2.05, "puan": 26.25, "not": ""}, "R3": {"deger": 25.89, "puan": 25.89, "not": "BDDK haftalık 2025-12-26: oran %2,46 (seviye puanı 12), 13 haftada +0,191 puan (eğilim puanı 40)"}, "R4": {"deger": 0.59, "puan": 42.625, "not": ""}, "R5": {"deger": 47.8, "puan": 52.5, "not": ""}, "R6": {"deger": 74.2, "puan": 47.5, "not": ""}, "R7": {"deger": 28.7, "puan": 66.875, "not": ""}, "P1": {"deger": 205.75, "puan": 1.4375, "not": ""}, "P2": {"deger": 7.0, "puan": 7.0, "not": "Faizi yeme oranı %34 (A=9); carry %6,4, 3 ayda -0,8 / 6 ayda 4,9 puan değişim (B=5); TL faizi net %41,45 (brüt %50,24, stopaj TL %17,5 / döviz %25,0; 2025-09 sonu), sepet 3 ayda %3,5"}, "P3": {"deger": -2.056, "puan": 0.0, "not": "Son 13 hafta (2025-12-26 haftasına kadar), gerçek kişiler, altın hariç, parite arındırılmış, TCMB"}, "P4": {"deger": 83.49, "puan": 30.3929, "not": ""}}}, {"donem": "2026-03", "etiket": "Mar 2026", "toplam": 37.1577, "bloklar": {"Makro": 40.4011, "Reel sektör ve ödeme": 45.8317, "Piyasa ve davranış": 13.3225}, "gostergeler": {"M1": {"deger": 30.87, "puan": 51.45, "not": ""}, "M2": {"deger": 22.17, "puan": 50.5313, "not": ""}, "M3": {"deger": 8.28, "puan": 0.0, "not": "Politika faizi %37,00; reelleştirme: ortalama(beklenti %22,17, yıllık TÜFE %30,87) = %26,52"}, "M4": {"deger": 2.44, "puan": 32.3333, "not": ""}, "M5": {"deger": 20.2, "puan": 49.75, "not": ""}, "M6": {"deger": 65.53, "puan": 49.1167, "not": ""}, "M7": {"deger": -2.25, "puan": 29.1667, "not": ""}, "M8": {"deger": 19.91, "puan": 74.4375, "not": "HMB merkezi yönetim bütçesi (TCMB EVDS), son 12 ay faiz gideri / vergi geliri"}, "R1": {"deger": 3.04, "puan": 38.5, "not": ""}, "R2": {"deger": 1.98, "puan": 24.5, "not": ""}, "R3": {"deger": 27.17, "puan": 27.17, "not": "BDDK haftalık 2026-03-27: oran %2,64 (seviye puanı 16), 13 haftada +0,179 puan (eğilim puanı 38)"}, "R4": {"deger": -0.35, "puan": 52.9167, "not": ""}, "R5": {"deger": 48.43, "puan": 44.625, "not": ""}, "R6": {"deger": 74.0, "puan": 50.0, "not": ""}, "R7": {"deger": 31.1, "puan": 81.875, "not": ""}, "P1": {"deger": 306.0, "puan": 26.5, "not": ""}, "P2": {"deger": 1.57, "puan": 1.57, "not": "Faizi yeme oranı %24 (A=0); carry %6,7, 3 ayda 0,3 / 6 ayda -0,5 puan değişim (B=3); TL faizi net %37,73 (brüt %45,73, stopaj TL %17,5 / döviz %25,0; 2025-12 sonu), sepet 3 ayda %2,2"}, "P3": {"deger": -3.572, "puan": 0.0, "not": "Son 13 hafta (2026-03-27 haftasına kadar), gerçek kişiler, altın hariç, parite arındırılmış, TCMB"}, "P4": {"deger": 85.04, "puan": 24.9, "not": ""}}}, {"donem": "2026-06", "etiket": "Haz 2026", "toplam": 35.1616, "bloklar": {"Makro": 39.3903, "Reel sektör ve ödeme": 42.5887, "Piyasa ve davranış": 11.85}, "gostergeler": {"M1": {"deger": 32.11, "puan": 53.5167, "not": ""}, "M2": {"deger": 23.81, "puan": 55.6562, "not": ""}, "M3": {"deger": 7.06, "puan": 0.0, "not": "Politika faizi %37,00; reelleştirme: ortalama(beklenti %23,81, yıllık TÜFE %32,11) = %27,96"}, "M4": {"deger": 2.34, "puan": 30.6667, "not": ""}, "M5": {"deger": 28.0, "puan": 40.0, "not": "İki kaynak farklı: 28,0 / 30,7; 28,0 alındı"}, "M6": {"deger": 62.45, "puan": 54.25, "not": ""}, "M7": {"deger": -2.43, "puan": 32.1667, "not": ""}, "M8": {"deger": 18.66, "puan": 66.625, "not": "HMB merkezi yönetim bütçesi (TCMB EVDS), son 12 ay faiz gideri / vergi geliri"}, "R1": {"deger": 3.21, "puan": 42.75, "not": ""}, "R2": {"deger": 2.24, "puan": 31.0, "not": ""}, "R3": {"deger": 24.8, "puan": 24.8, "not": "BDDK haftalık 2026-06-26: oran %2,78 (seviye puanı 19), 13 haftada +0,131 puan (eğilim puanı 30)"}, "R4": {"deger": 1.47, "puan": 31.625, "not": ""}, "R5": {"deger": 47.53, "puan": 55.875, "not": ""}, "R6": {"deger": 74.3, "puan": 46.25, "not": ""}, "R7": {"deger": 28.8, "puan": 67.5, "not": ""}, "P1": {"deger": 235.0, "puan": 8.75, "not": "Yaklaşık (15 Haz 225; Haziran 225–250 bandı)"}, "P2": {"deger": 22.76, "puan": 22.76, "not": "Faizi yeme oranı %47 (A=22); carry %4,6, 3 ayda -2,1 / 6 ayda -1,8 puan değişim (B=24); TL faizi net %38,20 (brüt %46,30, stopaj TL %17,5 / döviz %25,0; 2026-03 sonu), sepet 3 ayda %4,4"}, "P3": {"deger": -2.723, "puan": 0.0, "not": "Son 13 hafta (2026-06-26 haftasına kadar), gerçek kişiler, altın hariç, parite arındırılmış, TCMB"}, "P4": {"deger": 87.93, "puan": 17.675, "not": ""}}}, {"donem": "2026-09", "etiket": "Eyl 2026", "toplam": 39.2198, "bloklar": {"Makro": 36.6752, "Reel sektör ve ödeme": 51.388, "Piyasa ve davranış": 19.9725}, "gostergeler": {"M1": {"deger": 29.73, "puan": 49.325, "not": ""}, "M2": {"deger": 23.7, "puan": 55.3125, "not": ""}, "M3": {"deger": 8.12, "puan": 0.0, "not": "Politika faizi %37,00; reelleştirme: ortalama(beklenti %23,70, yıllık TÜFE %29,73) = %26,71"}, "M4": {"deger": 2.31, "puan": 30.1667, "not": "Eylül verisi (13 Kas 2026; 12 aylık açık 39,2 milyar $). Kripto dahil yeni seri; oran Ağustos GSYH paydasıyla yaklaşık. Önce Ağustos 2,48 taşınmıştı."}, "M5": {"deger": 39.9, "puan": 25.125, "not": ""}, "M6": {"deger": 71.27, "puan": 39.55, "not": "TCMB EVDS: Eylül brüt rezerv 171.204 milyon $ / kalan vadeye göre kısa vadeli dış borç 240.221 milyon $ (24 Kas 2026 kontrolü; önce Ağustos 77,36 taşınmıştı)"}, "M7": {"deger": -3.34, "puan": 47.3333, "not": ""}, "M8": {"deger": 19.3, "puan": 70.625, "not": "HMB merkezi yönetim bütçesi (TCMB EVDS), son 12 ay faiz gideri / vergi geliri"}, "R1": {"deger": 3.4, "puan": 47.5, "not": ""}, "R2": {"deger": 2.7, "puan": 42.5, "not": ""}, "R3": {"deger": 38.17, "puan": 38.17, "not": "BDDK haftalık 2026-09-25: oran %3,03 (seviye puanı 26), 13 haftada +0,256 puan (eğilim puanı 51)"}, "R4": {"deger": 0.18, "puan": 47.75, "not": ""}, "R5": {"deger": 47.9, "puan": 51.25, "not": ""}, "R6": {"deger": 74.1, "puan": 48.75, "not": ""}, "R7": {"deger": 31.2, "puan": 82.5, "not": ""}, "P1": {"deger": 250.0, "puan": 12.5, "not": ""}, "P2": {"deger": 17.43, "puan": 17.43, "not": "Faizi yeme oranı %47 (A=22); carry %4,7, 3 ayda 0,1 / 6 ayda -2,0 puan değişim (B=12); TL faizi net %40,49 (brüt %49,08, stopaj TL %17,5 / döviz %25,0; 2026-06 sonu), sepet 3 ayda %4,8"}, "P3": {"deger": 1.304, "puan": 41.3, "not": "Son 13 hafta (2026-09-25 haftasına kadar), gerçek kişiler, altın hariç, parite arındırılmış, TCMB"}, "P4": {"deger": 91.92, "puan": 7.7, "not": ""}}}, {"donem": "2026-10", "etiket": "Eki 2026", "toplam": 44.9447, "bloklar": {"Makro": 40.7207, "Reel sektör ve ödeme": 58.959, "Piyasa ve davranış": 25.364}, "gostergeler": {"M1": {"deger": 29.77, "puan": 49.425, "not": ""}, "M2": {"deger": 23.89, "puan": 55.9062, "not": ""}, "M3": {"deger": 7.22, "puan": 0.0, "not": "Politika faizi %35,99; reelleştirme: ortalama(beklenti %23,89, yıllık TÜFE %29,77) = %26,83"}, "M4": {"deger": 2.31, "puan": 30.1667, "not": "Eylül değeri taşındı (önce Ağustos 2,48 taşınmıştı)"}, "M5": {"deger": 24.3, "puan": 44.625, "not": ""}, "M6": {"deger": 71.27, "puan": 39.55, "not": "Eylül değeri taşındı (Ekim kısa vadeli dış borç henüz yok)"}, "M7": {"deger": -3.69, "puan": 53.1667, "not": "HMB Ekim 2026 bütçe gerçekleşme raporu (16 Kas 2026): Ekim açığı 481.091 milyon TL (Ekim 2025: 223.199). 12 aylık denge −2.694.488 milyon TL; GSYH paydası Eylül hesabındakiyle aynı (≈72,95 trilyon TL, 3. çeyrek GSYH henüz yok)"}, "M8": {"deger": 20.1, "puan": 75.5, "not": "HMB merkezi yönetim bütçesi (TCMB EVDS), son 12 ay faiz gideri / vergi geliri"}, "R1": {"deger": 4.2, "puan": 67.5, "not": "TBB Risk Merkezi Ekim 2026 raporu (17 Kas 2026): karşılıksız çek tutarı / ibraz edilen çek tutarı %4,2. Çapraz kontrol: TCMB EVDS Bankalararası Takas Odası Ekim %3,90 (Eylül %3,29)"}, "R2": {"deger": 3.2, "puan": 55.0, "not": "TBB Risk Merkezi Ekim 2026 raporu (17 Kas 2026): adet oranı %3,2. Çapraz kontrol: Takas Odası Ekim %2,95 (Eylül %2,57)"}, "R3": {"deger": 47.56, "puan": 47.56, "not": "BDDK haftalık 2026-10-30: oran %3,28 (seviye puanı 32), 13 haftada +0,382 puan (eğilim puanı 63)"}, "R4": {"deger": 0.18, "puan": 47.75, "not": "Eylül değeri taşındı"}, "R5": {"deger": 47.77, "puan": 52.875, "not": "Ağu–Eyl–Eki ortalaması (Ekim 47,3)"}, "R6": {"deger": 74.3, "puan": 46.25, "not": ""}, "R7": {"deger": 31.2, "puan": 82.5, "not": "Eylül değeri taşındı"}, "P1": {"deger": 258.0, "puan": 14.5, "not": "Yaklaşık, ikincil kaynak: Kuveyt Türk Yatırım haftalık bülteni (26–30 Ekim 2026) 30 Ekim itibarıyla 258; Deniz Yatırım 30.10.2026 günlük bülteni önceki kapanış 258. Resmî kaynak yok; investing.com erişilemedi"}, "P2": {"deger": 7.2, "puan": 7.2, "not": "Faizi yeme oranı %36 (A=11); carry %5,5, 3 ayda 0,2 / 6 ayda -0,6 puan değişim (B=3); TL faizi net %39,24 (brüt %47,56, stopaj TL %17,5 / döviz %25,0; 2026-07 sonu), sepet 3 ayda %3,5"}, "P3": {"deger": 2.761, "puan": 56.3417, "not": "Son 13 hafta (2026-10-30 haftasına kadar), gerçek kişiler, altın hariç, parite arındırılmış, TCMB"}, "P4": {"deger": 84.82, "puan": 25.6429, "not": ""}}}], "sonra": {"2016-12": {"sepet0": 3.6128, "bist0": 781.39, "tarih0": "30-12-2016", "sepet3": 3.7734, "bist3": 889.47, "tarih3": "31-03-2017", "btarih3": "31-03-2017", "dsepet": 4.45, "dbist": 13.83, "kismi": false}, "2017-12": {"sepet0": 4.1791, "bist0": 1153.33, "tarih0": "29-12-2017", "sepet3": 4.457, "bist3": 1149.3, "tarih3": "30-03-2018", "btarih3": "30-03-2018", "dsepet": 6.65, "dbist": -0.35, "kismi": false}, "2018-12": {"sepet0": 5.6444, "bist0": 912.7, "tarih0": "31-12-2018", "sepet3": 5.8879, "bist3": 937.84, "tarih3": "29-03-2019", "btarih3": "29-03-2019", "dsepet": 4.31, "dbist": 2.75, "kismi": false}, "2019-12": {"sepet0": 6.2954, "bist0": 1144.25, "tarih0": "31-12-2019", "sepet3": 6.8655, "bist3": 896.44, "tarih3": "31-03-2020", "btarih3": "31-03-2020", "dsepet": 9.06, "dbist": -21.66, "kismi": false}, "2020-12": {"sepet0": 8.1742, "bist0": 1476.72, "tarih0": "31-12-2020", "sepet3": 9.0501, "bist3": 1391.73, "tarih3": "31-03-2021", "btarih3": "31-03-2021", "dsepet": 10.71, "dbist": -5.76, "kismi": false}, "2021-12": {"sepet0": 13.8299, "bist0": 1857.65, "tarih0": "31-12-2021", "sepet3": 15.4772, "bist3": 2233.3, "tarih3": "31-03-2022", "btarih3": "31-03-2022", "dsepet": 11.91, "dbist": 20.22, "kismi": false}, "2022-12": {"sepet0": 19.2891, "bist0": 5509.16, "tarih0": "30-12-2022", "sepet3": 19.974, "bist3": 4812.93, "tarih3": "31-03-2023", "btarih3": "31-03-2023", "dsepet": 3.55, "dbist": -12.64, "kismi": false}, "2023-12": {"sepet0": 31.0455, "bist0": 7470.18, "tarih0": "29-12-2023", "sepet3": 33.5392, "bist3": 9142.4, "tarih3": "29-03-2024", "btarih3": "29-03-2024", "dsepet": 8.03, "dbist": 22.39, "kismi": false}, "2024-12": {"sepet0": 35.9831, "bist0": 9830.56, "tarih0": "31-12-2024", "sepet3": 39.4031, "bist3": 9659.48, "tarih3": "28-03-2025", "btarih3": "28-03-2025", "dsepet": 9.5, "dbist": -1.74, "kismi": false}, "2025-12": {"sepet0": 46.6578, "bist0": 11261.52, "tarih0": "31-12-2025", "sepet3": 47.7039, "bist3": 12790.98, "tarih3": "31-03-2026", "btarih3": "31-03-2026", "dsepet": 2.24, "dbist": 13.58, "kismi": false}, "2026-03": {"sepet0": 47.7039, "bist0": 12790.98, "tarih0": "31-03-2026", "sepet3": 49.8251, "bist3": 14121.83, "tarih3": "30-06-2026", "btarih3": "30-06-2026", "dsepet": 4.45, "dbist": 10.4, "kismi": false}, "2026-06": {"sepet0": 49.8251, "bist0": 14121.83, "tarih0": "30-06-2026", "sepet3": 52.2117, "bist3": 11947.18, "tarih3": "30-09-2026", "btarih3": "30-09-2026", "dsepet": 4.79, "dbist": -15.4, "kismi": false}, "2026-09": {"sepet0": 52.2117, "bist0": 11947.18, "tarih0": "30-09-2026", "sepet3": 52.9886, "bist3": 11104.38, "tarih3": "24-11-2026", "btarih3": "23-11-2026", "dsepet": 1.49, "dbist": -7.05, "kismi": true}, "2026-10": {"sepet0": 52.562, "bist0": 10759.56, "tarih0": "30-10-2026", "sepet3": 52.9886, "bist3": 11104.38, "tarih3": "24-11-2026", "btarih3": "23-11-2026", "dsepet": 0.81, "dbist": 3.2, "kismi": true}}, "sinyaller": [{"kod": "TK", "ad": "Takipteki krediler", "birim": "puan", "yon": 1, "sari": 0.09, "kirmizi": 0.17, "aciklama": "Tüm kredilerde takipteki oranının değişimi", "kaynak": "BDDK Haftalık Bülten", "hafta": "2026-11-13", "deger": 0.2267, "seviye": 2, "pencere": 6, "seri": [["2025-11-21", 0.1117], ["2025-11-28", 0.1022], ["2025-12-05", 0.1121], ["2025-12-12", 0.0586], ["2025-12-19", 0.0249], ["2025-12-26", 0.0306], ["2026-01-02", 0.0675], ["2026-01-09", 0.0894], ["2026-01-16", 0.0991], ["2026-01-23", 0.1151], ["2026-01-30", 0.1258], ["2026-02-06", 0.1353], ["2026-02-13", 0.0884], ["2026-02-20", 0.075], ["2026-02-27", 0.0504], ["2026-03-06", 0.0577], ["2026-03-13", 0.0376], ["2026-03-19", 0.0608], ["2026-03-27", 0.0386], ["2026-04-03", 0.0424], ["2026-04-10", 0.0387], ["2026-04-17", 0.0331], ["2026-04-24", 0.0476], ["2026-04-30", 0.0187], ["2026-05-08", 0.0611], ["2026-05-15", 0.0543], ["2026-05-22", 0.0423], ["2026-05-26", 0.039], ["2026-06-05", 0.0738], ["2026-06-12", 0.0916], ["2026-06-19", 0.0883], ["2026-06-26", 0.052], ["2026-07-03", 0.1104], ["2026-07-10", 0.1304], ["2026-07-17", 0.1493], ["2026-07-24", 0.1443], ["2026-07-31", 0.1036], ["2026-08-07", 0.1488], ["2026-08-14", 0.1017], ["2026-08-21", 0.0898], ["2026-08-28", 0.0207], ["2026-09-04", 0.0586], ["2026-09-11", 0.0792], ["2026-09-18", 0.0863], ["2026-09-25", 0.1089], ["2026-10-02", 0.1581], ["2026-10-09", 0.2149], ["2026-10-16", 0.2179], ["2026-10-23", 0.2685], ["2026-10-30", 0.2682], ["2026-11-06", 0.2849], ["2026-11-13", 0.2267]], "duzey": 3.321, "duzey_seri": [["2025-11-21", 2.4497], ["2025-11-28", 2.4624], ["2025-12-05", 2.4796], ["2025-12-12", 2.4711], ["2025-12-19", 2.4716], ["2025-12-26", 2.4648], ["2026-01-02", 2.5172], ["2026-01-09", 2.5518], ["2026-01-16", 2.5787], ["2026-01-23", 2.5862], ["2026-01-30", 2.5974], ["2026-02-06", 2.6001], ["2026-02-13", 2.6056], ["2026-02-20", 2.6268], ["2026-02-27", 2.6291], ["2026-03-06", 2.6439], ["2026-03-13", 2.635], ["2026-03-19", 2.6609], ["2026-03-27", 2.6442], ["2026-04-03", 2.6692], ["2026-04-10", 2.6678], ["2026-04-17", 2.677], ["2026-04-24", 2.6826], ["2026-04-30", 2.6796], ["2026-05-08", 2.7053], ["2026-05-15", 2.7235], ["2026-05-22", 2.7101], ["2026-05-26", 2.716], ["2026-06-05", 2.7564], ["2026-06-12", 2.7712], ["2026-06-19", 2.7936], ["2026-06-26", 2.7755], ["2026-07-03", 2.8205], ["2026-07-10", 2.8464], ["2026-07-17", 2.9057], ["2026-07-24", 2.9155], ["2026-07-31", 2.8972], ["2026-08-07", 2.9243], ["2026-08-14", 2.9222], ["2026-08-21", 2.9362], ["2026-08-28", 2.9264], ["2026-09-04", 2.9741], ["2026-09-11", 2.9764], ["2026-09-18", 3.0106], ["2026-09-25", 3.0311], ["2026-10-02", 3.0943], ["2026-10-09", 3.1413], ["2026-10-16", 3.192], ["2026-10-23", 3.2449], ["2026-10-30", 3.2788], ["2026-11-06", 3.316], ["2026-11-13", 3.321]], "not": ""}, {"kod": "NR", "ad": "Net rezerv", "birim": "milyar $", "yon": -1, "sari": -3.0, "kirmizi": -8.5, "aciklama": "TCMB net rezervindeki değişim (swap dahil); kuru korumak için döviz satışını gösterir", "kaynak": "TCMB EVDS · Analitik bilanço", "hafta": "2026-11-20", "deger": -32.465, "seviye": 2, "pencere": 6, "seri": [["2025-11-28", -6.98], ["2025-12-05", 10.033], ["2025-12-12", 9.951], ["2025-12-19", 9.69], ["2025-12-26", 7.566], ["2026-01-02", 6.756], ["2026-01-09", 10.443], ["2026-01-16", 9.893], ["2026-01-23", 14.304], ["2026-01-30", 12.236], ["2026-02-06", 10.02], ["2026-02-13", 16.153], ["2026-02-20", 7.158], ["2026-02-27", 4.921], ["2026-03-06", -15.093], ["2026-03-13", -23.981], ["2026-03-20", -31.949], ["2026-03-27", -55.755], ["2026-04-03", -42.216], ["2026-04-10", -35.395], ["2026-04-17", -16.828], ["2026-04-24", -12.553], ["2026-05-01", -2.514], ["2026-05-08", 19.776], ["2026-05-15", 7.082], ["2026-05-22", -6.819], ["2026-05-29", -13.248], ["2026-06-05", -5.575], ["2026-06-12", -7.679], ["2026-06-19", 1.232], ["2026-06-26", -3.761], ["2026-07-03", 7.762], ["2026-07-10", 10.738], ["2026-07-17", 5.816], ["2026-07-24", 8.681], ["2026-07-31", 1.749], ["2026-08-07", 17.305], ["2026-08-14", 13.714], ["2026-08-21", 13.046], ["2026-08-28", 16.094], ["2026-09-04", 14.552], ["2026-09-11", 8.518], ["2026-09-18", -6.036], ["2026-09-25", -12.262], ["2026-10-02", -14.126], ["2026-10-09", -10.802], ["2026-10-16", -15.739], ["2026-10-23", -20.732], ["2026-10-30", -19.589], ["2026-11-06", -13.701], ["2026-11-13", -12.505], ["2026-11-20", -32.465]], "duzey": 19.828, "duzey_seri": [["2025-11-28", 62.596], ["2025-12-05", 68.305], ["2025-12-12", 70.11], ["2025-12-19", 71.058], ["2025-12-26", 70.724], ["2026-01-02", 66.787], ["2026-01-09", 73.039], ["2026-01-16", 78.198], ["2026-01-23", 84.414], ["2026-01-30", 83.294], ["2026-02-06", 80.744], ["2026-02-13", 82.94], ["2026-02-20", 80.197], ["2026-02-27", 83.119], ["2026-03-06", 69.321], ["2026-03-13", 59.313], ["2026-03-20", 48.795], ["2026-03-27", 27.185], ["2026-04-03", 37.981], ["2026-04-10", 47.724], ["2026-04-17", 52.493], ["2026-04-24", 46.76], ["2026-05-01", 46.281], ["2026-05-08", 46.961], ["2026-05-15", 45.063], ["2026-05-22", 40.905], ["2026-05-29", 39.245], ["2026-06-05", 41.185], ["2026-06-12", 38.602], ["2026-06-19", 48.193], ["2026-06-26", 41.302], ["2026-07-03", 48.667], ["2026-07-10", 49.983], ["2026-07-17", 47.001], ["2026-07-24", 47.283], ["2026-07-31", 49.942], ["2026-08-07", 58.607], ["2026-08-14", 62.381], ["2026-08-21", 63.029], ["2026-08-28", 63.095], ["2026-09-04", 61.835], ["2026-09-11", 58.46], ["2026-09-18", 52.571], ["2026-09-25", 50.119], ["2026-10-02", 48.903], ["2026-10-09", 52.293], ["2026-10-16", 46.096], ["2026-10-23", 37.728], ["2026-10-30", 32.982], ["2026-11-06", 36.418], ["2026-11-13", 36.398], ["2026-11-20", 19.828]]}, {"kod": "YP", "ad": "Yabancı portföy akımı", "birim": "milyar $", "yon": -1, "sari": -0.7, "kirmizi": -1.7, "aciklama": "Yabancıların hisse ve devlet tahvili net alımı (sıcak para)", "kaynak": "TCMB EVDS · Yurt dışı yerleşikler menkul kıymet portföyü", "hafta": "2026-11-13", "deger": -0.2791, "seviye": 0, "pencere": 6, "seri": [["2025-11-21", 1.0291], ["2025-11-28", 1.6413], ["2025-12-05", 2.3322], ["2025-12-12", 2.0809], ["2025-12-19", 2.2912], ["2025-12-26", 1.9979], ["2026-01-02", 2.0774], ["2026-01-09", 2.5931], ["2026-01-16", 3.7567], ["2026-01-23", 5.1375], ["2026-01-30", 5.7569], ["2026-02-06", 6.0991], ["2026-02-13", 7.0712], ["2026-02-20", 5.3882], ["2026-02-27", 3.9064], ["2026-03-06", -0.3213], ["2026-03-13", -4.6978], ["2026-03-20", -5.3554], ["2026-03-27", -7.9507], ["2026-04-03", -8.3709], ["2026-04-10", -7.0403], ["2026-04-17", -3.7368], ["2026-04-24", -0.0164], ["2026-05-01", -0.2592], ["2026-05-08", 1.3698], ["2026-05-15", 2.0886], ["2026-05-22", 0.3177], ["2026-05-29", -0.7303], ["2026-06-05", -2.3875], ["2026-06-12", -1.5655], ["2026-06-19", -1.155], ["2026-06-26", -0.2201], ["2026-07-03", 0.9912], ["2026-07-10", 2.4757], ["2026-07-17", 3.8463], ["2026-07-24", 4.3792], ["2026-07-31", 3.5505], ["2026-08-07", 3.4462], ["2026-08-14", 2.7328], ["2026-08-21", 1.6228], ["2026-08-28", 1.631], ["2026-09-04", 0.2958], ["2026-09-11", 0.7466], ["2026-09-18", -0.0242], ["2026-09-25", 0.0546], ["2026-10-02", -0.7691], ["2026-10-09", -0.8085], ["2026-10-16", -0.4477], ["2026-10-23", -1.1603], ["2026-10-30", -1.7535], ["2026-11-06", -1.2981], ["2026-11-13", -0.2791]]}, {"kod": "BD", "ad": "Bireysel döviz talebi", "birim": "milyar $", "yon": 1, "sari": 1.8, "kirmizi": 3.3, "aciklama": "Gerçek kişilerin döviz mevduatına net girişi (altın hariç, parite etkisi arındırılmış)", "kaynak": "TCMB EVDS · Haftalık YP mevduat değişimi", "hafta": "2026-11-13", "deger": 1.0364, "seviye": 0, "pencere": 6, "seri": [["2025-11-21", -1.1579], ["2025-11-28", -1.3719], ["2025-12-05", -1.0583], ["2025-12-12", -1.4189], ["2025-12-19", -1.443], ["2025-12-26", -1.1656], ["2026-01-02", -1.1267], ["2026-01-09", -1.5236], ["2026-01-16", -2.0254], ["2026-01-23", -1.8584], ["2026-01-30", -2.0255], ["2026-02-06", -2.6635], ["2026-02-13", -2.8926], ["2026-02-20", -2.5323], ["2026-02-27", -1.8675], ["2026-03-06", -1.727], ["2026-03-13", -1.3883], ["2026-03-20", -0.8755], ["2026-03-27", -0.4343], ["2026-04-03", -0.4417], ["2026-04-10", -0.466], ["2026-04-17", -0.6514], ["2026-04-24", -0.8268], ["2026-05-01", -1.089], ["2026-05-08", -1.3367], ["2026-05-15", -1.1777], ["2026-05-22", -0.8692], ["2026-05-29", -0.9409], ["2026-06-05", -0.766], ["2026-06-12", -1.1122], ["2026-06-19", -1.2037], ["2026-06-26", -1.3553], ["2026-07-03", -1.5533], ["2026-07-10", -1.7173], ["2026-07-17", -1.5648], ["2026-07-24", -0.8592], ["2026-07-31", -0.5644], ["2026-08-07", 0.5409], ["2026-08-14", -0.2439], ["2026-08-21", 0.6144], ["2026-08-28", 0.7098], ["2026-09-04", 0.5076], ["2026-09-11", 0.4976], ["2026-09-18", -0.1424], ["2026-09-25", 1.6228], ["2026-10-02", 1.457], ["2026-10-09", 1.7125], ["2026-10-16", 1.8912], ["2026-10-23", 1.8695], ["2026-10-30", 1.9805], ["2026-11-06", 1.4416], ["2026-11-13", 1.0364]]}, {"kod": "KK", "ad": "Kredi kartı takipteki", "birim": "puan", "yon": 1, "sari": 0.13, "kirmizi": 0.25, "aciklama": "Bireysel kredi kartı takipteki oranının değişimi; hanehalkı borç sıkıntısı", "kaynak": "BDDK Haftalık Bülten", "hafta": "2026-11-13", "deger": 0.4664, "seviye": 2, "pencere": 6, "seri": [["2025-11-21", 0.1971], ["2025-11-28", -0.0104], ["2025-12-05", 0.0666], ["2025-12-12", 0.1483], ["2025-12-19", 0.0728], ["2025-12-26", 0.139], ["2026-01-02", -0.0062], ["2026-01-09", 0.1915], ["2026-01-16", 0.2711], ["2026-01-23", 0.27], ["2026-01-30", 0.1236], ["2026-02-06", 0.1929], ["2026-02-13", 0.242], ["2026-02-20", 0.208], ["2026-02-27", -0.0039], ["2026-03-06", 0.0401], ["2026-03-13", 0.1325], ["2026-03-19", 0.2138], ["2026-03-27", 0.1275], ["2026-04-03", -0.0509], ["2026-04-10", 0.0417], ["2026-04-17", 0.1001], ["2026-04-24", 0.0603], ["2026-04-30", -0.1366], ["2026-05-08", 0.1056], ["2026-05-15", 0.198], ["2026-05-22", 0.0587], ["2026-05-26", -0.079], ["2026-06-05", 0.1217], ["2026-06-12", 0.2611], ["2026-06-19", 0.2175], ["2026-06-26", 0.1589], ["2026-07-03", 0.2204], ["2026-07-10", 0.3534], ["2026-07-17", 0.3572], ["2026-07-24", 0.2908], ["2026-07-31", 0.0081], ["2026-08-07", 0.2106], ["2026-08-14", 0.1988], ["2026-08-21", 0.2699], ["2026-08-28", -0.004], ["2026-09-04", 0.0985], ["2026-09-11", 0.2638], ["2026-09-18", 0.1715], ["2026-09-25", 0.253], ["2026-10-02", 0.0589], ["2026-10-09", 0.3647], ["2026-10-16", 0.4894], ["2026-10-23", 0.5492], ["2026-10-30", 0.4134], ["2026-11-06", 0.5305], ["2026-11-13", 0.4664]], "duzey": 5.817, "duzey_seri": [["2025-11-21", 4.2984], ["2025-11-28", 4.2621], ["2025-12-05", 4.3335], ["2025-12-12", 4.3377], ["2025-12-19", 4.3978], ["2025-12-26", 4.3486], ["2026-01-02", 4.2921], ["2026-01-09", 4.4536], ["2026-01-16", 4.6046], ["2026-01-23", 4.6076], ["2026-01-30", 4.5214], ["2026-02-06", 4.5415], ["2026-02-13", 4.5341], ["2026-02-20", 4.6616], ["2026-02-27", 4.6007], ["2026-03-06", 4.6477], ["2026-03-13", 4.6539], ["2026-03-19", 4.7554], ["2026-03-27", 4.6616], ["2026-04-03", 4.6107], ["2026-04-10", 4.6424], ["2026-04-17", 4.7478], ["2026-04-24", 4.7142], ["2026-04-30", 4.6187], ["2026-05-08", 4.7671], ["2026-05-15", 4.8087], ["2026-05-22", 4.7011], ["2026-05-26", 4.6688], ["2026-06-05", 4.8359], ["2026-06-12", 4.8798], ["2026-06-19", 4.9847], ["2026-06-26", 4.9676], ["2026-07-03", 4.9215], ["2026-07-10", 5.0223], ["2026-07-17", 5.193], ["2026-07-24", 5.1706], ["2026-07-31", 4.9928], ["2026-08-07", 5.1782], ["2026-08-14", 5.1203], ["2026-08-21", 5.2922], ["2026-08-28", 5.189], ["2026-09-04", 5.2691], ["2026-09-11", 5.2566], ["2026-09-18", 5.3497], ["2026-09-25", 5.3733], ["2026-10-02", 5.351], ["2026-10-09", 5.5537], ["2026-10-16", 5.7586], ["2026-10-23", 5.8058], ["2026-10-30", 5.7631], ["2026-11-06", 5.9038], ["2026-11-13", 5.8174]]}]}</script>
+<dialog id="model" aria-labelledby="model-baslik">
+  <div class="mbas"><h2 id="model-baslik">Model nasıl çalışıyor?</h2><button id="model-kapat" aria-label="Kapat">Kapat ✕</button></div>
+  <div class="mgovde">
+    <nav class="icindekiler" aria-label="Bölümler">
+      <a href="#m-ne">Ne ölçüyor?</a><a href="#m-hesap">Hesaplama</a><a href="#m-gost">Göstergeler ve kaynaklar</a>
+      <a href="#m-bilesik">Bileşik göstergeler</a><a href="#m-guncel">Veri güncelleme</a><a href="#m-erken">Erken uyarı</a><a href="#m-sinir">Sınırlar</a>
+    </nav>
+
+    <h3 id="m-ne">Ne ölçüyor?</h3>
+    <p>Türkiye ekonomisinde kriz riskinin ne kadar yüksek olduğunu 0–100 arasında tek bir puanla gösterir. <b>0 = risk yok, 100 = kriz.</b> Yüksek puan kötüdür.</p>
+    <p>Bantlar: <b>Sakin</b> 0–25 · <b>Dikkat</b> 25–50 · <b>Yüksek risk</b> 50–75 · <b>Kriz</b> 75 ve üzeri.</p>
+    <p>Model kamuya açık resmî verilerle (TCMB, TÜİK, BDDK, Hazine ve Maliye Bakanlığı, TBB) çalışır. Kara kutu yoktur: her göstergenin değeri, eşiği, ağırlığı ve kaynağı aşağıda açıkça yazılıdır; aynı verilerle herkes aynı sonucu elde eder.</p>
+
+    <h3 id="m-hesap">Hesaplama üç adımda</h3>
+    <ol>
+      <li><b>Her gösterge 0–100 puana çevrilir.</b> Her göstergenin beş eşiği vardır (0, 25, 50, 75 ve 100 puana karşılık gelen değerler). Değer iki eşik arasındaysa puan doğrusal olarak hesaplanır; ilk eşikten iyiyse 0, son eşikten kötüyse 100 alır.</li>
+      <li><b>Göstergeler üç blokta toplanır.</b> Blok puanı, bloktaki göstergelerin ağırlıklı ortalamasıdır. Bir gösterge yoksa ağırlığı blok içindeki diğerlerine oransal olarak dağıtılır.</li>
+      <li><b>Bloklar toplam puana dönüşür.</b></li>
+    </ol>
+    <div class="formul" id="m-formul"></div>
+    <p class="alt" id="m-ornek"></p>
+
+    <h3 id="m-gost">Göstergeler, eşikler ve kaynaklar</h3>
+    <p class="alt">"Toplamdaki payı" = blok ağırlığı × gösterge ağırlığı. Eşik sütunları sırasıyla 0 / 25 / 50 / 75 / 100 puan veren değerlerdir. Son değer, panodaki son döneme aittir.</p>
+    <div class="kaydir"><table class="mtab"><thead><tr><th>Kod</th><th>Gösterge</th><th>Toplamdaki payı</th><th>Eşikler (0 → 100)</th><th>Son değer → puan</th><th>Kaynak</th><th>Nasıl hesaplanır</th></tr></thead><tbody id="m-tablo"></tbody></table></div>
+
+    <h3 id="m-bilesik">Bileşik göstergeler (biraz daha ayrıntı)</h3>
+    <ul>
+      <li><b>P2 Kur–carry baskısı:</b> Aynı kur artışı, TL faizi yüksekken ve düşükken aynı etkiyi yapmaz. Bu yüzden iki parçanın ortalaması alınır. (A) Son 3 ayda döviz sepeti (yarı dolar, yarı euro) artışının, aynı dönemde TL mevduatının getirisini ne kadar "yediği". (B) TL'de kalmanın döviz mevduatında kalmaya göre ek getirisi (carry) 3 ve 6 ay öncesine göre ne kadar azaldı. Tüm faizler stopaj düşülerek (net) kullanılır.</li>
+      <li><b>P3 Bireysel döviz talebi:</b> Son 13 haftada gerçek kişilerin döviz mevduatındaki değişim; altın hariç ve kur (parite) etkisinden arındırılmış. Artı değer bireylerin dövize geçtiğini gösterir.</li>
+      <li><b>R3 Takipteki krediler:</b> Hem oranın seviyesine hem son 13 haftadaki yönüne bakılır. Eğilim yalnız kötüleşmeyi ekler: R3 = büyük(seviye puanı, ½ seviye + ½ eğilim puanı).</li>
+      <li><b>M3 Reel politika faizi:</b> Politika faizi, 12 ay sonrası enflasyon beklentisi ile gerçekleşen yıllık enflasyonun ortalamasına göre reelleştirilir. Neden: piyasa katılımcıları geçmişte enflasyonu çoğu yıl eksik tahmin etti; ortalama, gerçekleşen reel faize en yakın sonucu verdi.</li>
+      <li><b>M8 Faiz gideri / vergi geliri:</b> Son 12 ayda devletin topladığı her 100 TL verginin kaçının faize gittiği.</li>
+    </ul>
+
+    <h3 id="m-guncel">Veri güncelleme ve eksik veri kuralı</h3>
+    <ul>
+      <li>Puan ayda bir güncellenir (her ayın 22'si civarı). Veriler farklı günlerde açıklanır: enflasyon ayın 3'ünde, bütçe ≈15'inde, karşılıksız çek ≈17'sinde, işgücü ve sanayi üretimi daha geç.</li>
+      <li>Henüz açıklanmamış bir veri uydurulmaz: bir önceki dönemin değeri taşınır ve bu durum açıkça not edilir. Bu yüzden son ayın puanı, eksik veriler geldikçe değişebilir (<b>geçici</b>).</li>
+      <li>Eşikler ve ağırlıklar sonuca bakılarak değiştirilmez. Yöntemde yapılan her değişiklik tarihiyle kayıt altına alınır.</li>
+    </ul>
+    <div class="uyari" id="m-tasinan"></div>
+
+    <h3 id="m-erken">Erken uyarı sinyalleri (haftalık)</h3>
+    <p>Risk puanı aylık ve gecikmeli verilerle hesaplanır. Erken uyarı bölümü, bozulmayı ay sonunu beklemeden yakalamak için beş haftalık sinyali izler. <b>Hiçbiri toplam puana girmez</b>; böylece modelin ağırlıkları değişmez ve aynı bilgi iki kez sayılmaz. Her sinyal <b>son 6 haftaya</b> bakar (19 Kasım 2026'da 4 haftadan 6 haftaya çıkarıldı; daha sakin ama biraz daha geç uyarır).</p>
+    <div class="kaydir"><table class="mtab" style="min-width:760px"><thead><tr><th>Sinyal</th><th>Ne ölçer (son 6 hafta)</th><th>Sarı / Kırmızı</th><th>Kaynak</th></tr></thead><tbody>
+      <tr><td>Takipteki krediler</td><td>Tüm kredilerde takipteki oranının değişimi</td><td class="n">+0,09 / +0,17 puan</td><td>BDDK Haftalık Bülten</td></tr>
+      <tr><td>Net rezerv</td><td>Merkez Bankası net rezervindeki değişim (swap dahil); kuru korumak için döviz satışını gösterir</td><td class="n">−3,0 / −8,5 milyar $</td><td>TCMB EVDS, analitik bilanço (dış varlıklar − döviz yükümlülükleri) ÷ USD kuru</td></tr>
+      <tr><td>Yabancı portföy akımı</td><td>Yabancıların hisse senedi ve devlet tahvili net alımı (sıcak para)</td><td class="n">−0,7 / −1,7 milyar $</td><td>TCMB EVDS, yurt dışı yerleşikler menkul kıymet portföyü</td></tr>
+      <tr><td>Bireysel döviz talebi</td><td>Gerçek kişilerin döviz mevduatına net girişi (altın hariç, parite etkisi arındırılmış)</td><td class="n">+1,8 / +3,3 milyar $</td><td>TCMB EVDS, haftalık YP mevduat değişimi</td></tr>
+      <tr><td>Kredi kartı takipteki</td><td>Bireysel kredi kartı takipteki oranının değişimi; hanehalkı borç sıkıntısı</td><td class="n">+0,13 / +0,25 puan</td><td>BDDK Haftalık Bülten</td></tr>
+    </tbody></table></div>
+    <p><b>“Olağan” ne demek?</b> Sinyalin bu haftaki değeri geçmişin en kötü %25’lik dilimine girmiyor demektir; “iyi” anlamına gelmez (24 Kasım 2026’ya kadar “Yeşil” deniyordu). Kartlardaki <b>yön</b> satırı hareketin hangi tarafa olduğunu (ör. yabancı çıkışı), <b>eğilim</b> satırı bu haftanın değerinin önceki 4 haftanın ortalamasına göre kötüleşip kötüleşmediğini (kırmızı eşiğin dörtte birinden küçük farklar “yatay” sayılır) ve son 8 haftadaki renk değişimini gösterir.</p>
+    <p><b>Eşikler nasıl belirlendi?</b> 2016–2026 haftalık verisinde sarı ≈ en kötü %25'lik dilim, kırmızı ≈ en kötü %10'luk dilim (yuvarlanmış). Beş sinyal için de aynı kural.</p>
+    <p><b>Geçmiş krizlerde test (19 Kasım 2026, 6 haftalık pencere):</b> 2016'dan bu yana 9 stres dönemi alındı (Mayıs ve Ağustos 2018, Mart 2019, Mart 2020, Kasım 2020, Aralık 2021, Mayıs–Haziran 2023, Mart 2025, Mart 2026). Her olayın 13 hafta öncesinden 4 hafta sonrasına kadar olan "kriz dönemleri" tüm haftaların yaklaşık %28'ini kapsıyor.</p>
+    <div class="kaydir"><table class="mtab" style="min-width:560px"><thead><tr><th>Sinyal</th><th>Olaydan önceki 8 haftada kırmızı yandı</th><th>Kırmızı haftaların kriz dönemine düşen payı (rastgele olsa ≈%28)</th></tr></thead><tbody>
+      <tr><td>Net rezerv</td><td class="n">9 olayın 6'sında</td><td class="n">%60</td></tr>
+      <tr><td>Kredi kartı takipteki</td><td class="n">9 olayın 5'inde</td><td class="n">%39</td></tr>
+      <tr><td>Yabancı portföy akımı</td><td class="n">9 olayın 3'ünde</td><td class="n">%40</td></tr>
+      <tr><td>Bireysel döviz talebi</td><td class="n">9 olayın 2'sinde</td><td class="n">%37</td></tr>
+      <tr><td>Takipteki krediler</td><td class="n">9 olayın 2'sinde</td><td class="n">%29</td></tr>
+    </tbody></table></div>
+    <p>En güçlü sinyal net rezervdir. Kredi kartı, yabancı portföy ve bireysel döviz sinyalleri tek başına zayıf ama rastgeleden iyidir. Takipteki krediler kur ve piyasa krizlerini önceden yakalamaz (rastgeleyle aynı); bankacılıktaki yavaş bozulmayı izlemek için tutulur. Sinyallerin birlikte okunması önerilir. <b>Genel durum kuralı:</b> 2 veya daha fazla kırmızı → Kırmızı; 1 kırmızı ya da 2 veya daha fazla sarı → Sarı; diğer durumlarda Olağan.</p>
+    <p class="alt">Notlar: Net rezerv dolar cinsindendir; altın fiyatı ve kur değişimleri de etkiler. Rezervlerin büyüklüğü yıllar içinde değiştiği için sabit dolar eşikleri bugün eskisine göre daha kolay aşılabilir. Kredi kartı ve takipteki kredi oranları borç satışlarından ve yapılandırmalardan etkilenebilir (takipteki tutar bir haftada %1,5'ten fazla düşerse kartta "portföy satışı olabilir" notu çıkar). Yabancı portföy verisi Eylül 2020 öncesinde TCMB'nin arşiv serisiyle birleştirildi (örtüşen dönemde hisse verisi birebir aynı, tahvil verisi çok yakın).</p>
+
+    <h3 id="m-sinir">Sınırlar — lütfen dikkate alın</h3>
+    <ul>
+      <li>Eşikler istatistiksel olarak kalibre edilmedi; geçmiş deneyim ve mantıkla belirlendi. Puan bir <b>olasılık değildir</b>; dönemleri birbiriyle karşılaştırmak için kullanılır.</li>
+      <li>CDS ve swap hariç net rezerv resmî kurumlarca yayımlanmaz; banka bültenleri ve basın hesaplarından alınır, yaklaşık olabilir.</li>
+      <li>"Sonrasında ne oldu?" tablosu geçmişte puanın ardından kur ve borsada ne olduğunu gösterir; geleceğe dair tahmin değildir.</li>
+      <li>Bu pano bilgilendirme amaçlıdır; yatırım tavsiyesi değildir.</li>
+    </ul>
+    <p class="alt" id="m-surum"></p>
+  </div>
+</dialog>
+
+<script>
+const V = JSON.parse(document.getElementById('veri').textContent);
+const BLOKLAR = Object.keys(V.bloklar);
+const KISA = {"Makro":"Makro","Reel sektör ve ödeme":"Reel sektör","Piyasa ve davranış":"Piyasa"};
+const RENK = {"Toplam":"var(--murekkep)","Makro":"#8a6bd1","Reel sektör ve ödeme":"#d0602a","Piyasa ve davranış":"#2a9bb0"};
+const tr = (x,d=1)=> x==null?'—':x.toLocaleString('tr-TR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const bant = p => p<25?['Sakin','b-sakin']:p<50?['Dikkat','b-dikkat']:p<75?['Yüksek risk','b-yuksek']:['Kriz','b-kriz'];
+
+// Puan fonksiyonu: risk_skoru.py ile aynı kural
+function puan(x,e){ if(x==null||isNaN(x)) return null; const P=[0,25,50,75,100]; const art=e[4]>e[0];
+  if(art){ if(x<=e[0]) return 0; if(x>=e[4]) return 100; } else { if(x>=e[0]) return 0; if(x<=e[4]) return 100; }
+  for(let i=0;i<4;i++){const a=e[i],b=e[i+1]; if(Math.min(a,b)<=x&&x<=Math.max(a,b)) return P[i]+25*(x-a)/(b-a);} return null; }
+function hesapla(deg){ const bl={}; BLOKLAR.forEach(b=>{let pay=0,pd=0; V.gostergeler.filter(g=>g.blok===b).forEach(g=>{const p=puan(deg[g.kod],g.esikler); if(p!=null){pay+=g.agirlik*p;pd+=g.agirlik;}}); bl[b]=pd?pay/pd:null;});
+  return {bl, top: BLOKLAR.reduce((s,b)=>s+V.bloklar[b]*bl[b],0)}; }
+
+// Kontrol: sayfa içi hesap Python sonuçlarıyla aynı mı?
+V.seri.forEach(s=>{const d={}; Object.entries(s.gostergeler).forEach(([k,o])=>d[k]=o.deger); const h=hesapla(d);
+  if(Math.abs(h.top-s.toplam)>0.001) console.error('Hesap farkı', s.donem, h.top, s.toplam);});
+
+const son = V.seri[V.seri.length-1], once = V.seri[V.seri.length-2];
+const SIN = V.sinyaller||[];
+const sinGenel = ()=>{const sv=SIN.map(x=>x.seviye); const nk=sv.filter(v=>v===2).length, ns=sv.filter(v=>v===1).length; return {nk,ns,ny:sv.length-nk-ns,n:sv.length,gen:nk>=2?['Kırmızı','b-kriz']:(nk===1||ns>=2)?['Sarı','b-dikkat']:['Olağan','b-olagan']};};
+const tasinan = Object.values(son.gostergeler).filter(o=>o.not && /taşındı/i.test(o.not)).length;
+document.getElementById('altbaslik').textContent = `Son dönem ${son.etiket}` + (tasinan?` (geçici: ${tasinan} gösterge önceki aydan taşındı)`:'') + ` · Sayfa ${new Date(V.olusturma).toLocaleDateString('tr-TR')} tarihli veriyle üretildi`;
+document.getElementById('olusturma').textContent = '';
+
+// ÖZET
+(function(){ const el=document.getElementById('ozet'); const [bAd,bCls]=bant(son.toplam); const fark=son.toplam-once.toplam;
+  let h=`<div class="tile buyuk ${bCls}"><div class="ad">Toplam risk · ${son.etiket}</div><div class="sayi">${tr(son.toplam)}</div>
+  <div><span class="pill ${bCls}">${bAd}</span> <span class="fark ${fark>0?'artti':'azaldi'}">${fark>0?'▲':'▼'} ${tr(Math.abs(fark))}</span> <span class="alt">önceki döneme göre (${once.etiket})</span></div></div>`;
+  BLOKLAR.forEach(b=>{const v=son.bloklar[b]; const [a,c]=bant(v); h+=`<div class="tile ${c}"><div class="ad">${KISA[b]} · %${V.bloklar[b]*100}</div><div class="sayi">${tr(v)}</div><span class="pill ${c}">${a}</span></div>`;});
+  if(SIN.length){ const g=sinGenel();
+    h+=`<a class="tile uyari ${g.gen[1]}" href="#sinyal-kart" style="text-decoration:none;color:inherit"><div class="ad">Erken uyarı · ${g.n} sinyal (son 6 hafta)</div><div class="sayi">${g.nk}<span style="font-size:1rem;font-weight:500"> / ${g.n} kırmızı</span></div>
+    <div><span class="pill ${g.gen[1]}">${g.gen[0]}</span> <span class="alt">${g.ns} sarı · ${g.ny} olağan · ayrıntı aşağıda</span></div></a>`;}
+  el.innerHTML=h; })();
+
+// TARİHÇE GRAFİĞİ
+function cizgiGrafik(){ const kap=document.getElementById('grafik'); const W=Math.max(320,Math.round(kap.clientWidth||1100)), dar=W<640;
+  const Hh=Math.round(Math.min(340,Math.max(240,W*0.32))), m={l:dar?30:44,r:dar?14:28,t:dar?22:24,b:30}; const n=V.seri.length;
+  const x=i=>m.l+i*(W-m.l-m.r)/(n-1), y=v=>m.t+(100-v)*(Hh-m.t-m.b)/100, adim=dar?2:1;
+  let s=`<svg viewBox="0 0 ${W} ${Hh}" width="${W}" height="${Hh}" role="img" aria-label="Risk puanının dönemlere göre gelişimi" style="touch-action:pan-y">`;
+  [[0,25,'var(--sakin-z)'],[25,50,'var(--dikkat-z)'],[50,75,'var(--yuksek-z)'],[75,100,'var(--kriz-z)']].forEach(([a,b,c])=>{s+=`<rect x="${m.l}" y="${y(b)}" width="${W-m.l-m.r}" height="${y(a)-y(b)}" fill="${c}" opacity=".55"/>`;});
+  [0,25,50,75,100].forEach(v=>{s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--cizgi)"/><text x="${m.l-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`;});
+  V.seri.forEach((p,i)=>{ if((n-1-i)%adim===0) s+=`<text x="${x(i)}" y="${Hh-10}" text-anchor="middle">${p.etiket.replace(' 20',' ')}</text>`;});
+  const ciz=(ad,vals,kal)=>{const op=kal>2?1:0.45; s+=`<g opacity="${op}"><polyline fill="none" stroke="${RENK[ad]}" stroke-width="${kal}" stroke-linejoin="round" stroke-linecap="round" points="${vals.map((v,i)=>x(i)+','+y(v)).join(' ')}"/>`;
+    vals.forEach((v,i)=>{s+=`<circle cx="${x(i)}" cy="${y(v)}" r="${kal>2?(dar?3.5:5):2.5}" fill="${RENK[ad]}" ${kal>2?'stroke="var(--kart)" stroke-width="2"':''}></circle>`;}); s+='</g>';};
+  BLOKLAR.forEach(b=>ciz(b,V.seri.map(p=>p.bloklar[b]),1.6)); ciz('Toplam',V.seri.map(p=>p.toplam),dar?3:4);
+  s+='<g id="g-sabit">'; V.seri.forEach((p,i)=>{ if(i===n-1||i===0) s+=`<text x="${i===0?x(i)+8:x(i)}" y="${y(p.toplam)-10}" text-anchor="${i===0?'start':'middle'}" style="fill:var(--murekkep);font-weight:600">${tr(p.toplam)}</text>`;}); s+='</g>';
+  s+=`<rect x="${m.l-10}" y="0" width="${W-m.l-m.r+20}" height="${Hh-m.b}" fill="transparent" style="cursor:crosshair"/><g id="g-hover" style="display:none;pointer-events:none"></g>`;
+  s+='</svg>'; kap.innerHTML=s;
+  // Fare/parmak ile gezince o dönemin değerleri (küçük etiketler)
+  const svg=kap.querySelector('svg'), hv=svg.querySelector('#g-hover'), sabit=svg.querySelector('#g-sabit'), seriler=['Toplam',...BLOKLAR];
+  const fs=dar?10.5:11.5, ara=fs*1.75;
+  const goster=ev=>{ const r=svg.getBoundingClientRect(); const px=(ev.clientX-r.left)*W/r.width;
+    const i=Math.max(0,Math.min(n-1,Math.round((px-m.l)/((W-m.l-m.r)/(n-1))))); const p=V.seri[i];
+    const deger=ad=>ad==='Toplam'?p.toplam:p.bloklar[ad];
+    let L=seriler.map(ad=>({ad,v:deger(ad),yy:y(deger(ad))})).sort((a,b)=>a.yy-b.yy);
+    for(let j=1;j<L.length;j++) if(L[j].yy-L[j-1].yy<ara) L[j].yy=L[j-1].yy+ara;
+    const asim=L[L.length-1].yy-(Hh-m.b-ara/2); if(asim>0) L.forEach(o=>o.yy-=asim);
+    const metin=o=>(o.ad==='Toplam'?'Toplam':(dar?(KISA[o.ad]||o.ad).split(' ')[0]:(KISA[o.ad]||o.ad)))+' '+tr(o.v);
+    const gen=o=>metin(o).length*fs*(o.ad==='Toplam'?0.66:0.6)+12;
+    const enGen=Math.max(...L.map(gen)), sag=x(i)+14+enGen>W-2;
+    let g=`<line x1="${x(i)}" x2="${x(i)}" y1="${m.t-4}" y2="${Hh-m.b}" stroke="var(--soluk)" stroke-dasharray="3 3"/>`;
+    const bw=p.etiket.length*fs*0.62+14, bx=Math.max(2,Math.min(W-bw-2,x(i)-bw/2));
+    g+=`<rect x="${bx}" y="1" width="${bw}" height="${fs+8}" rx="${(fs+8)/2}" fill="var(--murekkep)"/><text x="${bx+bw/2}" y="${fs+2}" text-anchor="middle" style="font-size:${fs}px;fill:var(--kart);font-weight:700">${p.etiket}</text>`;
+    seriler.forEach(ad=>{ g+=`<circle cx="${x(i)}" cy="${y(deger(ad))}" r="${ad==='Toplam'?6:4}" fill="${RENK[ad]}" stroke="var(--kart)" stroke-width="2"/>`; });
+    L.forEach(o=>{ const top=o.ad==='Toplam', w=gen(o), h=fs+8, lx=sag?x(i)-12-w:x(i)+12, ty=o.yy-h/2;
+      g+=`<line x1="${x(i)}" y1="${y(o.v)}" x2="${sag?lx+w:lx}" y2="${o.yy}" stroke="${RENK[o.ad]}" stroke-width="1" opacity=".7"/>`;
+      g+=`<rect x="${lx}" y="${ty}" width="${w}" height="${h}" rx="5" fill="var(--kart)" stroke="${RENK[o.ad]}" stroke-width="${top?2:1.2}" opacity=".97"/>`;
+      g+=`<text x="${lx+6}" y="${o.yy+fs*0.36}" style="font-size:${fs}px;font-weight:${top?700:600};fill:var(--murekkep)"><tspan style="fill:${top?'var(--murekkep)':RENK[o.ad]}">${metin(o).replace(/ [^ ]+$/,'')}</tspan> ${tr(o.v)}</text>`; });
+    hv.innerHTML=g; hv.style.display=''; sabit.style.display='none'; };
+  const gizle=()=>{hv.style.display='none'; sabit.style.display='';};
+  svg.addEventListener('pointermove',goster); svg.addEventListener('pointerdown',goster); svg.addEventListener('pointerleave',gizle);
+  document.getElementById('lejant').innerHTML=['Toplam',...BLOKLAR].map(k=>`<span><i style="background:${RENK[k]};height:${k==='Toplam'?4:3}px"></i>${KISA[k]||k}</span>`).join('');}
+cizgiGrafik();
+let _gw=document.getElementById('grafik').clientWidth; window.addEventListener('resize',()=>{const w=document.getElementById('grafik').clientWidth; if(Math.abs(w-_gw)>4){_gw=w; cizgiGrafik();}});
+
+
+// ERKEN UYARI SİNYALLERİ
+function sinyaller(){ const el=document.getElementById('sinyaller'); if(!SIN.length){document.getElementById('sinyal-kart').style.display='none';return;}
+  const SV=[['Olağan','b-olagan','var(--soluk)'],['Sarı','b-dikkat','var(--dikkat)'],['Kırmızı','b-kriz','var(--kriz)']];
+  const isaret=(v,d)=>(v>0?'+':v<0?'−':'')+tr(Math.abs(v),d);
+  const lev=(x,v)=>{const a=v*x.yon; return a>=x.kirmizi*x.yon?2:a>=x.sari*x.yon?1:0;};
+  const gun=s=>new Date(s).toLocaleDateString('tr-TR',{day:'numeric',month:'short'});
+  const ay=s=>new Date(s).toLocaleDateString('tr-TR',{month:'short',year:'2-digit'}).replace(' '," '");
+  const g=sinGenel();
+  document.getElementById('sinyal-genel').className='genel '+g.gen[1];
+  document.getElementById('sinyal-genel').innerHTML=`<div><div class="etiket">Genel durum</div><div class="durum">${g.gen[0]}</div></div>
+    <div class="noktalar" aria-hidden="true">${SIN.map(x=>`<i style="background:${['var(--murekkep)','var(--dikkat)','var(--kriz)'][x.seviye]}" title="${x.ad}: ${SV[x.seviye][0]}"></i>`).join('')}</div>
+    <div class="alt">${g.nk} kırmızı · ${g.ns} sarı · ${g.ny} olağan</div>`;
+  el.innerHTML=SIN.map(x=>{ const d=x.birim==='puan'?2:1, bir=x.birim==='puan'?'puan':'mlr $';
+    const duz = x.kod==='TK'||x.kod==='KK' ? `Oran %${tr(x.duzey,2)} · ` : x.kod==='NR' ? `Net rezerv ${tr(x.duzey,1)} mlr $ · ` : '';
+    return `<article class="skart ${SV[x.seviye][1]}">
+      <div class="ust-s"><div class="ad">${x.ad}</div><span class="pill ${SV[x.seviye][1]}">${SV[x.seviye][0]}</span></div>
+      <div class="deger">${isaret(x.deger,2)}<small>${bir}</small></div>
+      <div class="alt-s">${x.kod==="YP"||x.kod==="BD"?"6 haftalık toplam":"6 haftalık değişim"} · ${gun(x.hafta)}<br>${duz?duz.replace(/ · $/,""):"&nbsp;"}</div>
+      ${yonEgilim(x)}
+      ${spark(x)}
+      <div class="eksen"><span>${ay(x.seri[0][0])}</span><span>${ay(x.hafta)}</span></div>
+      <div class="esikler"><span style="color:var(--dikkat)">Sarı <b>${isaret(x.sari,d)}</b></span><span style="color:var(--kriz)">Kırmızı <b>${isaret(x.kirmizi,d)}</b></span></div>
+      ${x.not?`<div class="uyari-not">${x.not}</div>`:''}
+      <div class="aciklama">${x.aciklama}. <span title="Kaynak">${x.kaynak}</span></div>
+    </article>`;}).join('');
+  function yonEgilim(x){
+    const v=x.deger, kotu=v*x.yon>0;
+    const YON={TK:['takipteki oranı yükseliyor','takipteki oranı düşüyor'],KK:['kart takibi yükseliyor','kart takibi düşüyor'],
+      NR:['rezerv artıyor','rezerv eriyor'],YP:['yabancı girişi','yabancı çıkışı'],BD:['bireyler dövize giriyor','bireyler döviz satıyor']};
+    const t=YON[x.kod]; const yonMetin = v>=0? t[0] : t[1];
+    const ok = v>=0?'↑':'↓';
+    const S=x.seri, n=S.length, onc=S.slice(Math.max(0,n-5),n-1).map(o=>o[1]), onceki=onc.reduce((a,b)=>a+b,0)/onc.length, fark=(v-onceki)*x.yon, esik=Math.abs(x.kirmizi)*0.25;
+    const eg = fark>esik?['kötüleşiyor','var(--kriz)']:fark<-esik?['iyileşiyor','var(--sakin)']:['yatay','var(--soluk)'];
+    const AD=['olağan','sarı','kırmızı'], EK=['olağandı','sarıydı','kırmızıydı'];
+    const gecmis=S.slice(-9,-1).map(([h,d])=>({h,l:lev(x,d)})).reverse();
+    let renk='';
+    const ilkFark=gecmis.findIndex(o=>o.l!==x.seviye);
+    if(ilkFark<0) renk=`en az 8 haftadır ${AD[x.seviye]}`;
+    else { const hf=Math.max(1,Math.round((new Date(x.hafta)-new Date(gecmis[ilkFark].h))/6048e5));
+      renk=`${hf} hafta önce ${EK[gecmis[ilkFark].l]}`;
+      const enKotu=gecmis.reduce((a,o)=>o.l>a.l?o:a,{l:-1});
+      if(enKotu.l>x.seviye && enKotu.l>gecmis[ilkFark].l) renk+=`, ${gun(enKotu.h)} haftasında ${EK[enKotu.l]}`; }
+    return `<div class="yon"><span style="color:${kotu?'var(--dikkat)':'var(--sakin)'}">${ok} Yön: ${yonMetin}</span></div>
+      <div class="yon">Eğilim: <b style="color:${eg[1]}">${eg[0]}</b> · ${renk}</div>`; }
+  function spark(x){ const seri=x.seri, W=260,Hh=74,p=4; const vals=seri.map(a=>a[1]);
+    const lo=Math.min(0,x.kirmizi,...vals), hi=Math.max(0,x.kirmizi,...vals);
+    const y=v=>p+(hi-v)*(Hh-2*p)/((hi-lo)||1), bw=W/seri.length;
+    let s=`<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="${x.ad}: son 52 hafta">`;
+    seri.forEach(([hf,v],i)=>{const l=lev(x,v), c=SV[l][2]; s+=`<rect x="${i*bw+0.6}" y="${Math.min(y(v),y(0))}" width="${Math.max(bw-1.2,1)}" height="${Math.max(Math.abs(y(v)-y(0)),1)}" rx="1" fill="${c}" opacity="${l?1:.35}"><title>${new Date(hf).toLocaleDateString('tr-TR')}: ${isaret(v,2)}</title></rect>`;});
+    s+=`<line x1="0" x2="${W}" y1="${y(0)}" y2="${y(0)}" stroke="var(--soluk)" stroke-width=".7"/>`;
+    [[x.sari,'var(--dikkat)'],[x.kirmizi,'var(--kriz)']].forEach(([v,c])=>{s+=`<line x1="0" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="${c}" stroke-dasharray="3 3" stroke-width="1"/>`;});
+    const lx=(seri.length-1)*bw+bw/2, lv=seri[seri.length-1][1]; s+=`<circle cx="${Math.min(lx,W-3)}" cy="${y(lv)}" r="3" fill="var(--murekkep)"/>`;
+    return s+'</svg>'; }
+}
+sinyaller();
+
+// SENARYO
+const baz={}; Object.entries(son.gostergeler).forEach(([k,o])=>baz[k]=o.deger);
+const deg={...baz};
+document.getElementById('baz-etiket').textContent=son.etiket;
+const adim=g=>{const sp=Math.abs(g.esikler[4]-g.esikler[0]); return sp>=200?5:sp>=50?0.5:sp>=10?0.1:0.05;};
+const ondalik=g=>{const a=adim(g); return a>=1?0:a>=0.1?1:2;};
+function kaydiricilariKur(){ const el=document.getElementById('kaydiricilar'); let h='';
+  BLOKLAR.forEach(b=>{ h+=`<div class="blok-grup"><h3><span>${KISA[b]} <span class="alt">· toplamda %${V.bloklar[b]*100}</span></span><span class="alt" id="bk-${b.split(' ')[0]}"></span></h3>`;
+    V.gostergeler.filter(g=>g.blok===b).forEach(g=>{ const e=g.esikler, lo=Math.min(e[0],e[4]), hi=Math.max(e[0],e[4]), pay=(hi-lo)*0.2, a=adim(g);
+      const mn=Math.floor((lo-pay)/a)*a, mx=Math.ceil((hi+pay)/a)*a;
+      if(baz[g.kod]==null){ h+=`<div class="satir"><label>${g.ad}<br><span class="birim">${g.kaynak}</span></label><div class="not">Henüz hesaplanmıyor; ağırlığı blok içinde dağıtılır.</div><output>—</output><span class="p">—</span></div>`; return;}
+      const min=Math.min(mn,baz[g.kod]), max=Math.max(mx,baz[g.kod]);
+      h+=`<div class="satir" id="s-${g.kod}"><label for="r-${g.kod}">${g.ad}<br><span class="birim">${g.birim} · ağırlık ${g.agirlik}</span></label>
+        <div class="ray"><input type="range" id="r-${g.kod}" min="${min}" max="${max}" step="${a}" value="${baz[g.kod]}" aria-describedby="o-${g.kod}"></div>
+        <output id="o-${g.kod}" for="r-${g.kod}"></output><span class="p" id="p-${g.kod}"></span></div>`;});
+    h+='</div>';});
+  el.innerHTML=h;
+  V.gostergeler.forEach(g=>{const r=document.getElementById('r-'+g.kod); if(r) r.addEventListener('input',()=>{deg[g.kod]=+r.value; guncelle();});});}
+function guncelle(){ const h=hesapla(deg), hb=hesapla(baz); const t=h.top, f=t-hb.top; const [a,c]=bant(t);
+  document.getElementById('sen-toplam').textContent=tr(t); const k=document.getElementById('sen-kutu'); k.className='tile '+c;
+  const pb=document.getElementById('sen-bant'); pb.textContent=a; pb.className='pill '+c;
+  const fe=document.getElementById('sen-fark'); fe.textContent=Math.abs(f)<0.05?'başlangıçla aynı':`${f>0?'▲':'▼'} ${tr(Math.abs(f))} puan`; fe.className='fark '+(f>0.05?'artti':f<-0.05?'azaldi':'');
+  document.getElementById('sen-bloklar').innerHTML='<div class="alt"><span>Blok</span><span>Şimdi</span><span>Senaryo</span></div>'+BLOKLAR.map(b=>`<div><span>${KISA[b]}</span><span>${tr(hb.bl[b])}</span><b>${tr(h.bl[b])}</b></div>`).join('');
+  V.gostergeler.forEach(g=>{ if(baz[g.kod]==null) return; const p=puan(deg[g.kod],g.esikler); const [,cc]=bant(p);
+    document.getElementById('o-'+g.kod).textContent=tr(deg[g.kod],ondalik(g));
+    const pe=document.getElementById('p-'+g.kod); pe.textContent=Math.round(p); pe.className='p pill '+cc;
+    document.getElementById('s-'+g.kod).classList.toggle('degisti', Math.abs(deg[g.kod]-baz[g.kod])>1e-9);});}
+const HAZIR = [
+  {ad:'Başlangıca dön', d:{}},
+  {ad:'Örnek: kur şoku', d:{P2:85,P1:450,M5:0,M1:38,M2:28,P4:75}},
+  {ad:'Örnek: reel bozulma', d:{R1:4.5,R2:3.5,R3:60,R4:-3,R5:46,R6:72,R7:33}},
+  {ad:'Örnek: dezenflasyon ve toparlanma', d:{M1:20,M2:17,R4:3,R5:50,R6:76,P4:90}},
+];
+document.getElementById('hazir').innerHTML=HAZIR.map((s,i)=>`<button type="button" class="${i===0?'ana':''}" data-i="${i}">${s.ad}</button>`).join('');
+document.getElementById('hazir').addEventListener('click',e=>{const i=e.target.dataset.i; if(i==null) return; Object.assign(deg,baz,HAZIR[i].d);
+  V.gostergeler.forEach(g=>{const r=document.getElementById('r-'+g.kod); if(r){ r.min=Math.min(+r.min,deg[g.kod]); r.max=Math.max(+r.max,deg[g.kod]); r.value=deg[g.kod];}}); guncelle();});
+kaydiricilariKur(); guncelle();
+
+// GÖSTERGE TABLOSU
+const sec=document.getElementById('donem-sec'); sec.innerHTML=V.seri.map((s,i)=>`<option value="${i}" ${i===V.seri.length-1?'selected':''}>${s.etiket}</option>`).join('');
+function tablo(){ const s=V.seri[+sec.value]; let h='';
+  BLOKLAR.forEach(b=>{ h+=`<tr><th colspan="6" style="color:var(--murekkep);font-weight:600">${KISA[b]} · blok puanı ${tr(s.bloklar[b])}</th></tr>`;
+    V.gostergeler.filter(g=>g.blok===b).forEach(g=>{const o=s.gostergeler[g.kod]; const [,c]=o.puan==null?['','']:bant(o.puan);
+      h+=`<tr><td>${g.kod}</td><td>${g.ad} <span class="tasindi">(${g.birim})</span></td><td class="s">${tr(o.deger,2)}</td><td class="s">${o.puan==null?'—':`<span class="pill ${c}">${Math.round(o.puan)}</span>`}</td><td class="s">${g.agirlik}</td><td>${g.kaynak}${o.not?`<div class="tasindi">${o.not}</div>`:''}</td></tr>`;});});
+  document.getElementById('tablo').innerHTML=h;}
+sec.addEventListener('change',tablo); tablo();
+// GEÇMİŞ DEĞERLER TABLOSU
+let gMod='deger';
+function gecmis(){ const S=V.seri.slice().reverse(); // en yeni dönem solda
+  document.getElementById('gecmis-bas').innerHTML='<tr><th>Gösterge</th>'+S.map(s=>`<th class="d">${s.etiket.replace(' 20',' ')}</th>`).join('')+'</tr>';
+  let h='';
+  BLOKLAR.forEach(b=>{
+    h+=`<tr><th colspan="${S.length+1}" style="color:var(--murekkep);font-weight:600">${KISA[b]}</th></tr>`;
+    V.gostergeler.filter(g=>g.blok===b).forEach(g=>{
+      h+=`<tr><td class="ad">${g.ad} <span class="tasindi">(${g.birim})</span></td>`+S.map(s=>{const o=s.gostergeler[g.kod];
+        if(o.deger==null) return '<td class="h">—</td>';
+        const [,c]=bant(o.puan); const tas=o.not&&/taşındı/i.test(o.not);
+        const icerik=gMod==='deger'?tr(o.deger,Math.abs(o.deger)>=100?0:2):Math.round(o.puan);
+        return `<td class="h ${tas?'tas':''}" title="${s.etiket} · ${g.ad}: ${tr(o.deger,2)} → puan ${Math.round(o.puan)}${o.not?' · '+o.not.replace(/"/g,"'"):''}"><span class="${c}">${icerik}${tas?'*':''}</span></td>`;}).join('')+'</tr>';});
+    h+=`<tr class="toplam"><td>${KISA[b]} blok puanı</td>`+S.map(s=>{const [,c]=bant(s.bloklar[b]);return `<td class="h"><span class="${c}">${tr(s.bloklar[b])}</span></td>`}).join('')+'</tr>';
+  });
+  h+=`<tr class="toplam"><td>TOPLAM RİSK</td>`+S.map(s=>{const [,c]=bant(s.toplam);return `<td class="h"><span class="${c}">${tr(s.toplam)}</span></td>`}).join('')+'</tr>';
+  const SO=V.sonra||{};
+  if(Object.keys(SO).length){
+    h+=`<tr><th colspan="${S.length+1}" style="color:var(--murekkep);font-weight:600;padding-top:18px">Sonrasında ne oldu? (3 ay sonra)</th></tr>`;
+    const hucre=(s,f,bas)=>{const o=SO[s.donem]; if(!o) return '<td class="h">—</td>'; const v=f(o); if(v==null) return '<td class="h">—</td>';
+      const k=bas&&o.kismi; return `<td class="h ${k?'tas':''}" title="${bas?(o.kismi?'3 ay dolmadı · en son veri '+o.tarih3:'3 ay sonra · '+o.tarih3):'O tarih · '+o.tarih0}"><span>${v}${k?'*':''}</span></td>`;};
+    const satir=(ad,f,bas,cls='')=>`<tr class="${cls}"><td class="ad">${ad}</td>`+S.map(s=>hucre(s,f,bas)).join('')+'</tr>';
+    h+=satir('Döviz sepeti (TL) · o tarihte',o=>tr(o.sepet0,2),false);
+    h+=satir('BIST 100 · o tarihte',o=>tr(o.bist0,0),false);
+    h+=satir('Döviz sepeti (TL) · 3 ay sonra',o=>tr(o.sepet3,2),true);
+    h+=satir('BIST 100 · 3 ay sonra',o=>tr(o.bist3,0),true);
+    const deg=(x,kotu)=>{const c=Math.abs(x)<0.05?'':(kotu(x)?'artti':'azaldi'); return `<b class="${c}">${x>0?'+':x<0?'−':''}%${tr(Math.abs(x),1)}</b>`;};
+    h+=satir('Döviz sepeti · 3 aylık değişim',o=>deg(o.dsepet,x=>x>0),true,'toplam');
+    h+=satir('BIST 100 · 3 aylık değişim',o=>deg(o.dbist,x=>x<0),true,'toplam');
+  }
+  document.getElementById('gecmis').innerHTML=h;
+  document.getElementById('g-deger').className=gMod==='deger'?'ana':''; document.getElementById('g-puan').className=gMod==='puan'?'ana':'';}
+document.getElementById('g-deger').addEventListener('click',()=>{gMod='deger';gecmis();});
+document.getElementById('g-puan').addEventListener('click',()=>{gMod='puan';gecmis();});
+gecmis();
+// ---- Model açıklaması penceresi ----
+(function(){
+  const dlg=document.getElementById('model'), son=V.seri[V.seri.length-1];
+  const sayi=(x)=>typeof x==='number'?x.toLocaleString('tr-TR',{maximumFractionDigits:2}):x;
+  document.getElementById('m-formul').innerHTML='Toplam = '+BLOKLAR.map(b=>`${tr(V.bloklar[b],1)} × ${KISA[b]}`).join(' + ');
+  // Örnek: son dönemde puanı en yüksek gösterge
+  let ex=null; V.gostergeler.forEach(g=>{const o=son.gostergeler[g.kod]; if(o&&o.puan!=null&&(!ex||o.puan>son.gostergeler[ex.kod].puan)) ex=g;});
+  if(ex){ const o=son.gostergeler[ex.kod], e=ex.esikler; let i=0; for(;i<4;i++){ if(Math.min(e[i],e[i+1])<=o.deger&&o.deger<=Math.max(e[i],e[i+1])) break; }
+    const ac= i<4 ? `${sayi(o.deger)} değeri ${sayi(e[i])} (${i*25} puan) ile ${sayi(e[i+1])} (${(i+1)*25} puan) eşikleri arasında olduğu için` : `${sayi(o.deger)} değeri eşik aralığının dışında olduğu için`;
+    document.getElementById('m-ornek').innerHTML=`Örnek (${son.etiket}): ${ex.ad} (${ex.kod}) — ${ac} puanı <b>${tr(o.puan,1)}</b> oldu. Bu dönemin blok puanları: `+BLOKLAR.map(b=>`${KISA[b]} ${tr(son.bloklar[b],1)}`).join(' · ')+` → toplam <b>${tr(son.toplam,1)}</b>.`; }
+  // Gösterge tablosu
+  let h=''; BLOKLAR.forEach(b=>{ const gs=V.gostergeler.filter(g=>g.blok===b), top=gs.reduce((a,g)=>a+g.agirlik,0);
+    h+=`<tr class="bl"><td colspan="7">${b} — toplamdaki ağırlık %${tr(V.bloklar[b]*100,0)}</td></tr>`;
+    gs.forEach(g=>{ const o=son.gostergeler[g.kod]||{}; const pay=V.bloklar[b]*g.agirlik/top*100;
+      h+=`<tr><td>${g.kod}</td><td>${g.ad}<div class="alt">${g.birim}</div></td><td class="n">%${tr(pay,1)}<div class="alt">blokta %${tr(g.agirlik/top*100,0)}</div></td>
+        <td class="n">${g.esikler.map(sayi).join(' / ')}</td><td class="n">${o.deger==null?'—':sayi(o.deger)} → ${o.puan==null?'—':tr(o.puan,0)}</td>
+        <td>${g.kaynak}</td><td>${g.nasil}</td></tr>`; }); });
+  document.getElementById('m-tablo').innerHTML=h;
+  // Son dönemde taşınan / yaklaşık veriler
+  const t=V.gostergeler.filter(g=>{const n=((son.gostergeler[g.kod]||{}).not||'').toLowerCase(); return n.includes('taşın')||n.includes('yaklaşık');});
+  document.getElementById('m-tasinan').innerHTML = t.length ? `<b>${son.etiket} için taşınan veya yaklaşık değerler:</b> `+t.map(g=>`${g.kod} ${g.ad} <span class="alt">(${son.gostergeler[g.kod].not})</span>`).join('; ') : `${son.etiket} için taşınan veri yok.`;
+  document.getElementById('m-surum').textContent=`Pano üretim tarihi: ${V.olusturma}. Göstergeler, eşikler ve ağırlıklar modelin kendi dosyalarından otomatik alınır; burada gördüğünüz, hesapta kullanılanın aynısıdır.`;
+  document.getElementById('model-ac').addEventListener('click',()=>dlg.showModal());
+  document.getElementById('model-kapat').addEventListener('click',()=>dlg.close());
+  dlg.addEventListener('click',e=>{ if(e.target===dlg) dlg.close(); });
+  document.querySelectorAll('#model .icindekiler a').forEach(a=>a.addEventListener('click',e=>{e.preventDefault(); document.querySelector(a.getAttribute('href')).scrollIntoView({behavior:'smooth',block:'start'});}));
+})();
+</script>
+</body>
+</html>
